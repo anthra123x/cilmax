@@ -1,0 +1,140 @@
+---
+// Tarjeta de producto para el catálogo.
+// Recibe un producto normalizado (ProductData) procedente de Medusa o del
+// fallback local, y muestra la primera variante con su precio real.
+
+import type { ProductData } from '../lib/medusa';
+import { formatPrice } from '../lib/medusa';
+import AddToCartButton from './cart/AddToCartButton.tsx';
+
+interface Props {
+  product: ProductData;
+}
+
+const { product } = Astro.props;
+
+const defaultVariant = product.variants[0];
+const priceLabel = defaultVariant
+  ? formatPrice(defaultVariant.amount, defaultVariant.currencyCode)
+  : null;
+const image = product.images[0]?.url ?? product.thumbnail;
+---
+
+<article class="product-card">
+  <a class="product-card__link" href={`/producto/${product.handle}`}>
+    <div class="product-card__media">
+      {
+        image ? (
+          <img src={image} alt={product.title} loading="lazy" />
+        ) : (
+          <div class="product-card__placeholder" aria-hidden="true">
+            <span>{product.title.slice(0, 1)}</span>
+          </div>
+        )
+      }
+    </div>
+    <div class="product-card__body">
+      {
+        product.collectionTitle && (
+          <span class="product-card__collection">{product.collectionTitle}</span>
+        )
+      }
+      <h3 class="product-card__title">{product.title}</h3>
+      <p class="product-card__price">{priceLabel}</p>
+    </div>
+  </a>
+
+  {
+    defaultVariant && (
+      <AddToCartButton
+        client:visible
+        variantId={defaultVariant.id}
+        productId={product.id}
+        title={product.title}
+        variantTitle={defaultVariant.title}
+        handle={product.handle}
+        image={image}
+        price={defaultVariant.amount}
+        currencyCode={defaultVariant.currencyCode}
+      />
+    )
+  }
+</article>
+
+<style>
+  .product-card {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+  }
+
+  .product-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+
+  .product-card__link {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .product-card__media {
+    aspect-ratio: 1 / 1;
+    background-color: var(--color-surface-muted);
+  }
+
+  .product-card__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .product-card__placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-4xl);
+    font-weight: 800;
+    color: var(--color-border);
+    user-select: none;
+  }
+
+  .product-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: var(--space-4) var(--space-4) var(--space-3);
+  }
+
+  .product-card__collection {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+  }
+
+  .product-card__title {
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .product-card__price {
+    font-size: var(--font-size-base);
+    font-weight: 700;
+    color: var(--color-accent);
+  }
+
+  .product-card > .add-to-cart {
+    margin: 0 var(--space-4) var(--space-4);
+    width: calc(100% - 2 * var(--space-4));
+  }
+</style>

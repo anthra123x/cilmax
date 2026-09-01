@@ -1,0 +1,162 @@
+---
+// Página "Preguntas frecuentes" de CilMax.
+// FAQ con acordeón sencillo (native <details>) + CTA a WhatsApp.
+
+import Layout from '../layouts/Layout.astro';
+import { whatsappLink } from '../lib/site';
+
+const faqs = [
+  {
+    q: '¿Cómo hago un pedido?',
+    a: 'Agrega los productos a tu carrito y pulsa "Pedir por WhatsApp". El mensaje llega directo a nuestro equipo con tu pedido y nosotros te confirmamos el envío y el medio de pago.',
+  },
+  {
+    q: '¿Cuáles son los medios de pago?',
+    a: 'Aceptamos transferencia, consignación y pago contra entrega en Bogotá. Confirmamos el detalle por WhatsApp al gestionar tu pedido.',
+  },
+  {
+    q: '¿Cuánto tarda el envío?',
+    a: 'Depende de tu ciudad: en Bogotá de 1 a 3 días hábiles, en principales ciudades de 2 a 5 días, y en zonas lejanas de 4 a 8 días hábiles.',
+  },
+  {
+    q: '¿Puedo retirar en tienda?',
+    a: 'Sí. Visítanos en nuestra tienda física en Bogotá (Calle 10a #24-03, barrio Bolívar) o coordina por WhatsApp tu visita.',
+  },
+  {
+    q: '¿Tienen garantía?',
+    a: 'Sí. Todos nuestros productos cuentan con garantía. Escríbenos por WhatsApp y te orientamos en caso de cualquier inconveniente.',
+  },
+  {
+    q: '¿Cómo solicito un cambio o devolución?',
+    a: 'Tienes 30 días desde la recepción. El producto debe estar sin uso y con su empaque. Escríbenos por WhatsApp y te damos el paso a paso.',
+  },
+];
+---
+
+<Layout
+  title="Preguntas frecuentes — CilMax"
+  description="Resolvemos tus dudas sobre pedidos, pagos, envíos, garantías y devoluciones en CilMax."
+>
+  <section class="page-hero">
+    <div class="container">
+      <h1 class="page-hero__title">Preguntas frecuentes</h1>
+      <p class="page-hero__subtitle">
+        Respuestas rápidas a las dudas más comunes. Si no encuentras la tuya,
+        escríbenos por WhatsApp.
+      </p>
+    </div>
+  </section>
+
+  <section class="faq container">
+    <div class="faq__list">
+      {faqs.map((item) => (
+        <details class="faq__item">
+          <summary>{item.q}</summary>
+          <p>{item.a}</p>
+        </details>
+      ))}
+    </div>
+
+    <div class="faq__cta">
+      <h2>¿Tienes otra pregunta?</h2>
+      <p>Nuestro equipo te responde con gusto por WhatsApp.</p>
+      <a class="btn btn--primary" href={whatsappLink('Hola CilMax, tengo una pregunta.')} target="_blank" rel="noopener">
+        Escríbenos por WhatsApp
+      </a>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .page-hero {
+    padding-block: var(--space-12) var(--space-8);
+    background: linear-gradient(180deg, var(--color-accent-soft), var(--color-bg) 70%);
+  }
+
+  .page-hero__title {
+    font-size: var(--font-size-3xl);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--color-text);
+  }
+
+  .page-hero__subtitle {
+    margin-top: var(--space-2);
+    color: var(--color-text-muted);
+    max-width: 60ch;
+  }
+
+  .faq {
+    padding-block: var(--space-8) var(--space-16);
+    display: grid;
+    gap: var(--space-12);
+  }
+
+  .faq__list {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .faq__item {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background-color: var(--color-surface);
+    overflow: hidden;
+  }
+
+  .faq__item summary {
+    cursor: pointer;
+    padding: var(--space-4) var(--space-5);
+    font-weight: 700;
+    color: var(--color-text);
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .faq__item summary::after {
+    content: '+';
+    font-size: var(--font-size-xl);
+    color: var(--color-primary);
+    flex-shrink: 0;
+  }
+
+  .faq__item[open] summary::after {
+    content: '–';
+  }
+
+  .faq__item summary:hover {
+    background-color: var(--color-accent-soft);
+  }
+
+  .faq__item p {
+    padding: 0 var(--space-5) var(--space-4);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    line-height: 1.7;
+  }
+
+  .faq__cta {
+    display: grid;
+    gap: var(--space-3);
+    justify-items: start;
+    padding: var(--space-8);
+    border: 1px solid var(--color-border);
+    border-left: 3px solid var(--color-gold);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(180deg, var(--color-accent-soft), var(--color-bg) 80%);
+  }
+
+  .faq__cta h2 {
+    font-size: var(--font-size-xl);
+    font-weight: 800;
+    color: var(--color-text);
+  }
+
+  .faq__cta p {
+    color: var(--color-text-muted);
+    max-width: 60ch;
+  }
+</style>

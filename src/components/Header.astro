@@ -1,0 +1,129 @@
+---
+// Header / Barra de navegación global.
+// El botón del carrito es un island (client:visible) que muestra el contador
+// y abre el drawer. En fases posteriores se conecta búsqueda y menú móvil.
+
+import CartButton from './cart/CartButton.tsx';
+
+const navLinks = [
+  { href: '/', label: 'Inicio' },
+  { href: '/catalogo', label: 'Catálogo' },
+  { href: '/tiendas', label: 'Tiendas' },
+  { href: '/contacto', label: 'Contacto' },
+];
+---
+
+<header class="header">
+  <div class="container header__inner">
+    <a class="header__logo" href="/" aria-label="CilMax — Inicio">
+      Cil<span>Max</span>
+    </a>
+
+    <nav class="header__nav" aria-label="Navegación principal">
+      <ul class="header__links">
+        {
+          navLinks.map((link) => (
+            <li>
+              <a href={link.href}>{link.label}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="header__actions">
+      <CartButton client:visible />
+    </div>
+  </div>
+</header>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    height: var(--header-height);
+    background-color: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .header__inner {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+
+  .header__logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--color-text);
+    white-space: nowrap;
+  }
+
+  .header__logo span {
+    color: var(--color-primary);
+  }
+
+  .header__nav {
+    margin-inline: auto;
+  }
+
+  .header__links {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    list-style: none;
+  }
+
+  .header__links a {
+    position: relative;
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    color: var(--color-text-muted);
+    transition: color 0.2s ease;
+  }
+
+  .header__links a:hover {
+    color: var(--color-primary);
+  }
+
+  .header__links a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -6px;
+    height: 2px;
+    border-radius: var(--radius-pill);
+    background-color: var(--color-gold);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.2s ease;
+  }
+
+  .header__links a:hover::after {
+    transform: scaleX(1);
+  }
+
+  .header__actions {
+    display: flex;
+    align-items: center;
+  }
+
+  /* Tablet y móvil: colapsar la navegación.
+     En <= 768px el nav horizontal y el botón del carrito se ocultan,
+     porque la navegación y el acceso al carrito viven en la barra inferior
+     (BottomNav). El header queda limpio con solo el logo. */
+  @media (max-width: 768px) {
+    .header__nav {
+      display: none;
+    }
+
+    .header__actions {
+      display: none;
+    }
+  }
+</style>

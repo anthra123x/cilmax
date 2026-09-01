@@ -1,0 +1,165 @@
+---
+// Página "Envíos y devoluciones" de CilMax.
+// Describe cobertura, tiempos y política de devoluciones de la tienda.
+
+import Layout from '../layouts/Layout.astro';
+import { whatsappLink } from '../lib/site';
+
+const sections = [
+  {
+    title: 'Cobertura de envíos',
+    items: [
+      'Enviamos a todo el territorio colombiano.',
+      'Las entregas a Bogotá se coordinan por WhatsApp para definir el punto de entrega.',
+      'El costo y el tiempo del envío se confirman al momento de gestionar tu pedido.',
+    ],
+  },
+  {
+    title: 'Tiempos estimados',
+    items: [
+      'Bogotá y alrededores: de 1 a 3 días hábiles.',
+      'Principales ciudades: de 2 a 5 días hábiles.',
+      'Zonas lejanas: de 4 a 8 días hábiles.',
+    ],
+  },
+  {
+    title: 'Devoluciones y cambios',
+    items: [
+      'Tienes 30 días para solicitar cambios o devoluciones desde la recepción del pedido.',
+      'Los productos deben estar sin uso y con su empaque original.',
+      'Para gestionarlo, escríbenos por WhatsApp y te indicamos el paso a paso.',
+    ],
+  },
+];
+---
+
+<Layout
+  title="Envíos y devoluciones — CilMax"
+  description="Conoce la cobertura, tiempos de entrega y política de devoluciones de CilMax en Colombia."
+>
+  <section class="page-hero">
+    <div class="container">
+      <h1 class="page-hero__title">Envíos y devoluciones</h1>
+      <p class="page-hero__subtitle">
+        Te contamos cómo llegan tus pedidos y cómo gestionar cambios o
+        devoluciones.
+      </p>
+    </div>
+  </section>
+
+  <section class="shipping container">
+    <div class="shipping__grid">
+      {sections.map((section, i) => (
+        <article class="shipping__card">
+          <span class="shipping__num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+          <h2>{section.title}</h2>
+          <ul>
+            {section.items.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </article>
+      ))}
+    </div>
+
+    <div class="shipping__cta">
+      <h3>¿Dudas con tu pedido?</h3>
+      <p>Escríbenos por WhatsApp y te ayudamos con el envío o la devolución.</p>
+      <a class="btn btn--primary" href={whatsappLink('Hola CilMax, tengo una duda sobre envíos o devoluciones.')} target="_blank" rel="noopener">
+        Escríbenos por WhatsApp
+      </a>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .page-hero {
+    padding-block: var(--space-12) var(--space-8);
+    background: linear-gradient(180deg, var(--color-accent-soft), var(--color-bg) 70%);
+  }
+
+  .page-hero__title {
+    font-size: var(--font-size-3xl);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--color-text);
+  }
+
+  .page-hero__subtitle {
+    margin-top: var(--space-2);
+    color: var(--color-text-muted);
+    max-width: 60ch;
+  }
+
+  .shipping {
+    padding-block: var(--space-8) var(--space-16);
+    display: grid;
+    gap: var(--space-12);
+  }
+
+  .shipping__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-6);
+  }
+
+  .shipping__card {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-6);
+    border: 1px solid var(--color-border);
+    border-top: 3px solid var(--color-primary);
+    border-radius: var(--radius-lg);
+    background-color: var(--color-surface);
+  }
+
+  .shipping__num {
+    font-size: var(--font-size-xl);
+    font-weight: 800;
+    color: var(--color-gold-hover);
+  }
+
+  .shipping__card h2 {
+    font-size: var(--font-size-lg);
+    font-weight: 800;
+    color: var(--color-text);
+  }
+
+  .shipping__card ul {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding-left: var(--space-4);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+  }
+
+  .shipping__cta {
+    display: grid;
+    gap: var(--space-3);
+    justify-items: start;
+    padding: var(--space-8);
+    border: 1px solid var(--color-border);
+    border-left: 3px solid var(--color-gold);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(180deg, var(--color-accent-soft), var(--color-bg) 80%);
+  }
+
+  .shipping__cta h3 {
+    font-size: var(--font-size-xl);
+    font-weight: 800;
+    color: var(--color-text);
+  }
+
+  .shipping__cta p {
+    color: var(--color-text-muted);
+    max-width: 60ch;
+  }
+
+  @media (max-width: 900px) {
+    .shipping__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

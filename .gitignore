@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.astro/
+.DS_Store
+.env
+.env.*
+!.env.example
+*.log
+
+# Herramientas del entorno de desarrollo (skills/plugins), no son codigo de la tienda
+.opencode/
+.agents/
+.skills-lock.json
+.codex/

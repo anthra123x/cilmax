@@ -1,0 +1,114 @@
+---
+// Página "Novedades" del catálogo. Muestra los productos más recientes/
+// destacados de la tienda reutilizando la tarjeta de producto.
+
+import Layout from '../../layouts/Layout.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import { getProducts } from '../../lib/medusa';
+
+export const prerender = true;
+export const revalidate = 300;
+
+const all = await getProducts(24);
+const products = all.filter((p) => p.featured).length
+  ? all.filter((p) => p.featured)
+  : all;
+---
+
+<Layout
+  title="Novedades — CilMax"
+  description="Lo último en tecnología, hogar y oficina en CilMax. Descubre nuestras novedades."
+>
+  <section class="page-hero">
+    <div class="container">
+      <h1 class="page-hero__title">Novedades</h1>
+      <p class="page-hero__subtitle">
+        Los productos más recientes y destacados de nuestra tienda, para que no
+        te pierdas de nada nuevo.
+      </p>
+    </div>
+  </section>
+
+  <section class="catalog" aria-labelledby="catalog-title">
+    <div class="container">
+      <div class="catalog__header">
+        <h2 id="catalog-title">{products.length} productos en novedades</h2>
+      </div>
+
+      {
+        products.length > 0 ? (
+          <div class="catalog__grid">
+            {products.map((product) => <ProductCard product={product} />)}
+          </div>
+        ) : (
+          <p class="catalog__empty">
+            Aún no hay novedades. Vuelve pronto o consulta nuestro catálogo.
+          </p>
+        )
+      }
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .page-hero {
+    padding-block: var(--space-12) var(--space-8);
+    background: linear-gradient(180deg, var(--color-accent-soft), var(--color-bg) 70%);
+  }
+
+  .page-hero__title {
+    font-size: var(--font-size-3xl);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--color-text);
+  }
+
+  .page-hero__subtitle {
+    margin-top: var(--space-2);
+    color: var(--color-text-muted);
+    max-width: 60ch;
+  }
+
+  .catalog {
+    padding-block: var(--space-8) var(--space-16);
+  }
+
+  .catalog__header {
+    margin-bottom: var(--space-6);
+  }
+
+  .catalog__header h2 {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+  }
+
+  .catalog__empty {
+    color: var(--color-text-muted);
+    padding: var(--space-16) 0;
+    text-align: center;
+  }
+
+  .catalog__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-6);
+  }
+
+  @media (max-width: 1024px) {
+    .catalog__grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .catalog__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .catalog__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

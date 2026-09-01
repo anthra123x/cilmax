@@ -1,0 +1,286 @@
+---
+// Página de contacto de CilMax (tienda colombiana).
+// Muestra canales de atención y un formulario de contacto. En fase local el
+// formulario abre el cliente de correo con los datos precargados (mailto);
+// cuando haya backend se sustituye por un envío real.
+
+import Layout from '../layouts/Layout.astro';
+import { whatsappLink } from '../lib/site';
+
+const contactChannels = [
+  {
+    title: 'Dirección',
+    lines: ['Calle 10a #24-03, barrio Bolívar', 'Bogotá, Colombia'],
+  },
+  {
+    title: 'Teléfono',
+    lines: ['+57 601 745 63 20', '+57 310 245 8877'],
+  },
+  {
+    title: 'Correo',
+    lines: ['hola@cilmax.co', 'ventas@cilmax.co'],
+  },
+  {
+    title: 'Horario de atención',
+    lines: ['Lunes a viernes: 8:00 a. m. – 6:00 p. m.', 'Sábados: 9:00 a. m. – 2:00 p. m.'],
+  },
+];
+---
+
+<Layout
+  title="Contacto — CilMax"
+  description="Contáctanos: dudas, soporte, pedidos y asesoría. Atención al cliente CilMax en Colombia."
+>
+  <section class="page-hero">
+    <div class="container">
+      <h1 class="page-hero__title">Contacto</h1>
+      <p class="page-hero__subtitle">
+        Estamos aquí para ayudarte. Escríbenos o llámanos y te respondemos lo
+        antes posible.
+      </p>
+    </div>
+  </section>
+
+  <section class="contact container">
+    <div class="contact__grid">
+      <div class="contact__channels">
+        {
+          contactChannels.map((channel) => (
+            <div class="channel">
+              <span class="channel__icon" aria-hidden="true">
+                <svg
+                  width="22" height="22" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 7v5l3 3" />
+                </svg>
+              </span>
+              <div>
+                <h3 class="channel__title">{channel.title}</h3>
+                {channel.lines.map((line) => <p class="channel__line">{line}</p>)}
+              </div>
+            </div>
+          ))
+        }
+
+        <a
+          class="contact-whatsapp btn btn--secondary"
+          href={whatsappLink('Hola CilMax, quiero más información.')}
+          target="_blank"
+          rel="noopener"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm0 18.15a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24 2.2 0 4.27.86 5.82 2.42a8.18 8.18 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.24 8.23Zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.17.24-.64.8-.78.97-.14.16-.29.18-.54.06-.25-.13-1.05-.39-2-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.51.11-.11.25-.29.37-.43.12-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.13-.56-1.35-.77-1.84-.2-.49-.4-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.22.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.07-.1-.23-.16-.48-.29Z" />
+          </svg>
+          Escríbenos por WhatsApp
+        </a>
+      </div>
+
+      <form class="contact-form" id="contact-form">
+        <h2 class="contact-form__title">Envíanos un mensaje</h2>
+        <div class="contact-form__row">
+          <label class="field">
+            <span class="field__label">Nombre</span>
+            <input class="field__input" type="text" name="nombre" required placeholder="Tu nombre" />
+          </label>
+          <label class="field">
+            <span class="field__label">Correo</span>
+            <input class="field__input" type="email" name="correo" required placeholder="tucorreo@ejemplo.com" />
+          </label>
+        </div>
+        <label class="field">
+          <span class="field__label">Asunto</span>
+          <input class="field__input" type="text" name="asunto" placeholder="¿En qué te ayudamos?" />
+        </label>
+        <label class="field">
+          <span class="field__label">Mensaje</span>
+          <textarea class="field__input field__textarea" name="mensaje" rows="5" required placeholder="Escribe tu mensaje..."></textarea>
+        </label>
+        <button class="btn btn--primary contact-form__submit" type="submit">
+          Enviar mensaje
+        </button>
+        <p class="contact-form__status" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  const form = document.getElementById('contact-form') as HTMLFormElement | null;
+  const status = document.querySelector('.contact-form__status') as HTMLElement | null;
+
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!form || !status) return;
+    const data = new FormData(form);
+    const nombre = data.get('nombre') as string;
+    const correo = data.get('correo') as string;
+    const asunto = (data.get('asunto') as string) || 'Consulta desde la web';
+    const mensaje = data.get('mensaje') as string;
+
+    const subject = encodeURIComponent(`[CilMax] ${asunto}`);
+    const body = encodeURIComponent(
+      `Hola CilMax,\n\n${mensaje}\n\n— ${nombre} (${correo})`
+    );
+    window.location.href = `mailto:hola@cilmax.co?subject=${subject}&body=${body}`;
+
+    status.textContent = '¡Gracias! Se abrirá tu correo para enviar el mensaje.';
+    form.reset();
+  });
+</script>
+
+<style>
+  .page-hero {
+    padding-block: var(--space-12) var(--space-8);
+    background: linear-gradient(180deg, var(--color-accent-soft), var(--color-bg) 70%);
+  }
+
+  .page-hero__title {
+    font-size: var(--font-size-3xl);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--color-text);
+  }
+
+  .page-hero__subtitle {
+    margin-top: var(--space-2);
+    color: var(--color-text-muted);
+    max-width: 60ch;
+  }
+
+  .contact {
+    padding-block: var(--space-8) var(--space-16);
+  }
+
+  .contact__grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: var(--space-12);
+    align-items: start;
+  }
+
+  .contact__channels {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .channel {
+    display: flex;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-left: 3px solid var(--color-gold);
+    border-radius: var(--radius-md);
+    background-color: var(--color-surface);
+  }
+
+  .channel__icon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: var(--radius-md);
+    background-color: var(--color-primary-soft);
+    color: var(--color-primary);
+  }
+
+  .channel__title {
+    font-size: var(--font-size-base);
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: var(--space-1);
+  }
+
+  .channel__line {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  .contact-whatsapp {
+    justify-self: start;
+    margin-top: var(--space-1);
+  }
+
+  .contact-form {
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    border: 1px solid var(--color-border);
+    border-top: 3px solid var(--color-primary);
+    border-radius: var(--radius-lg);
+    background-color: var(--color-surface);
+  }
+
+  .contact-form__title {
+    font-size: var(--font-size-xl);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--color-text);
+  }
+
+  .contact-form__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+  }
+
+  .field {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .field__label {
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+  }
+
+  .field__input {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: inherit;
+    font-size: var(--font-size-base);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .field__input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-soft);
+  }
+
+  .field__textarea {
+    resize: vertical;
+  }
+
+  .contact-form__submit {
+    justify-self: start;
+    margin-top: var(--space-2);
+  }
+
+  .contact-form__status {
+    font-size: var(--font-size-sm);
+    color: var(--color-primary);
+  }
+
+  @media (max-width: 820px) {
+    .contact__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .contact-form__row {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

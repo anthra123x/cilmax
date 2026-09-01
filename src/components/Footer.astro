@@ -1,0 +1,147 @@
+---
+// Pie de página global. Cascarón estático; se conectará a datos reales
+// (contacto, redes, legal) en fases posteriores.
+
+const currentYear = new Date().getFullYear();
+
+const footerColumns = [
+  {
+    title: 'Tienda',
+    links: [
+      { href: '/catalogo', label: 'Catálogo' },
+      { href: '/catalogo/novedades', label: 'Novedades' },
+      { href: '/catalogo/ofertas', label: 'Ofertas' },
+    ],
+  },
+  {
+    title: 'Ayuda',
+    links: [
+      { href: '/envios', label: 'Envíos y devoluciones' },
+      { href: '/preguntas', label: 'Preguntas frecuentes' },
+      { href: '/contacto', label: 'Contacto' },
+    ],
+  },
+  {
+    title: 'Empresa',
+    links: [
+      { href: '/nosotros', label: 'Sobre nosotros' },
+      { href: '/tiendas', label: 'Nuestras tiendas' },
+      { href: '/legal/privacidad', label: 'Privacidad' },
+    ],
+  },
+];
+---
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a class="footer__logo" href="/">Cil<span>Max</span></a>
+        <p class="footer__tagline">
+          Tu tienda online de confianza. Productos de calidad, envío rápido
+          y atención cercana.
+        </p>
+      </div>
+
+      {
+        footerColumns.map((col) => (
+          <div class="footer__col">
+            <h3 class="footer__title">{col.title}</h3>
+            <ul class="footer__links">
+              {col.links.map((link) => (
+                <li>
+                  <a href={link.href}>{link.label}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="footer__bottom">
+      <p>&copy; {currentYear} CilMax. Todos los derechos reservados.</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    margin-top: var(--space-16);
+    background-color: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .footer__grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: var(--space-8);
+    padding-block: var(--space-12);
+  }
+
+  .footer__logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--color-text);
+  }
+
+  .footer__logo span {
+    color: var(--color-primary);
+  }
+
+  .footer__tagline {
+    margin-top: var(--space-3);
+    max-width: 34ch;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  .footer__title {
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text);
+    margin-bottom: var(--space-4);
+  }
+
+  .footer__links {
+    list-style: none;
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .footer__links a {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    transition: color 0.2s ease;
+  }
+
+  .footer__links a:hover {
+    color: var(--color-primary);
+  }
+
+  .footer__bottom {
+    padding-block: var(--space-6);
+    border-top: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  @media (max-width: 768px) {
+    .footer__grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .footer__brand {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .footer__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

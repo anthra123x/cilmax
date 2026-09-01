@@ -1,0 +1,12 @@
+---
+// Página de carrito (a pantalla completa). El contenido es una island React
+// que lee el carrito global (nanostores). El checkout se integra más adelante.
+import Layout from '../layouts/Layout.astro';
+import CartPageView from '../components/cart/CartPageView.tsx';
+---
+
+<Layout title="Tu carrito — CilMax">
+  <div class="container">
+    <CartPageView client:load />
+  </div>
+</Layout>

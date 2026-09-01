@@ -1,0 +1,155 @@
+---
+// Página "Política de privacidad" de CilMax.
+// Documento legal simple adecuado a la etapa actual de la tienda.
+
+import Layout from '../../layouts/Layout.astro';
+import { storeInfo } from '../../lib/site';
+
+const sections = [
+  {
+    title: 'Información que recopilamos',
+    body: 'Recopilamos la información que nos compartes al contactarnos: nombre, correo, teléfono y el contenido de tus mensajes. En los pedidos, también los datos de envío necesarios para la entrega.',
+  },
+  {
+    title: 'Uso de la información',
+    body: 'Usamos tu información para atender tus consultas, gestionar tus pedidos, coordinar envíos y mejorar nuestro servicio. No vendemos ni compartimos tus datos con terceros con fines comerciales.',
+  },
+  {
+    title: 'Comunicación por WhatsApp',
+    body: 'Cuando escribes por WhatsApp, tu número se maneja bajo los términos de ese servicio. Solo usamos el número para la gestión de tu pedido o consulta y para informarte del estado del mismo.',
+  },
+  {
+    title: 'Almacenamiento y seguridad',
+    body: 'Conservamos tus datos solo el tiempo necesario y aplicamos medidas razonables para protegerlos. Puedes pedirnos en cualquier momento que actualicemos o eliminemos tu información.',
+  },
+  {
+    title: 'Tus derechos',
+    body: 'Puedes solicitar acceso, corrección o eliminación de tus datos escribiéndonos a nuestro correo de contacto. Atendemos estas solicitudes en un plazo razonable.',
+  },
+  {
+    title: 'Cambios a esta política',
+    body: 'Podemos actualizar esta política ocasionalmente. Los cambios se publicarán en esta página con su fecha de vigencia.',
+  },
+];
+---
+
+<Layout
+  title="Política de privacidad — CilMax"
+  description="Política de privacidad de CilMax: qué datos recopilamos, cómo los usamos y tus derechos."
+>
+  <section class="page-hero">
+    <div class="container">
+      <h1 class="page-hero__title">Política de privacidad</h1>
+      <p class="page-hero__subtitle">
+        Transparencia sobre cómo manejamos tu información en {storeInfo.name}.
+      </p>
+    </div>
+  </section>
+
+  <section class="legal container">
+    <div class="legal__grid">
+      {sections.map((section) => (
+        <article class="legal__card">
+          <h2>{section.title}</h2>
+          <p>{section.body}</p>
+        </article>
+      ))}
+    </div>
+
+    <div class="legal__contact">
+      <h3>Contacto</h3>
+      <p>
+        Para preguntas sobre esta política o tus datos, escríbenos a{' '}
+        <a href={`mailto:${storeInfo.email}`}>{storeInfo.email}</a>.
+      </p>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .page-hero {
+    padding-block: var(--space-12) var(--space-8);
+    background: linear-gradient(180deg, var(--color-accent-soft), var(--color-bg) 70%);
+  }
+
+  .page-hero__title {
+    font-size: var(--font-size-3xl);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--color-text);
+  }
+
+  .page-hero__subtitle {
+    margin-top: var(--space-2);
+    color: var(--color-text-muted);
+    max-width: 60ch;
+  }
+
+  .legal {
+    padding-block: var(--space-8) var(--space-16);
+    display: grid;
+    gap: var(--space-12);
+  }
+
+  .legal__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-6);
+  }
+
+  .legal__card {
+    padding: var(--space-6);
+    border: 1px solid var(--color-border);
+    border-top: 3px solid var(--color-primary);
+    border-radius: var(--radius-lg);
+    background-color: var(--color-surface);
+  }
+
+  .legal__card h2 {
+    font-size: var(--font-size-lg);
+    font-weight: 800;
+    color: var(--color-text);
+    margin-bottom: var(--space-2);
+  }
+
+  .legal__card p {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    line-height: 1.7;
+  }
+
+  .legal__contact {
+    padding: var(--space-8);
+    border: 1px solid var(--color-border);
+    border-left: 3px solid var(--color-gold);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(180deg, var(--color-accent-soft), var(--color-bg) 80%);
+  }
+
+  .legal__contact h3 {
+    font-size: var(--font-size-xl);
+    font-weight: 800;
+    color: var(--color-text);
+    margin-bottom: var(--space-2);
+  }
+
+  .legal__contact p {
+    color: var(--color-text-muted);
+    max-width: 60ch;
+  }
+
+  .legal__contact a {
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+
+  .legal__contact a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    .legal__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

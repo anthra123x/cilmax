@@ -1,0 +1,1 @@
+import{r as e,t}from"./jsx-runtime.CHDW_qNl.js";import{t as n}from"./react.Chu1VSMB.js";var r=t();function i(){let t=n(e);return(0,r.jsx)(`span`,{className:`cart-badge`,"aria-label":`${t} artículos en el carrito`,children:t})}export{i as default};

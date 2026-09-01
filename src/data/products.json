@@ -1,0 +1,211 @@
+{
+  "products": [
+    {
+      "id": "prod_headphones",
+      "title": "Auriculares inalámbricos",
+      "handle": "auriculares-inalambricos",
+      "description": "Cancelación activa de ruido, 30 h de batería y diseño ligero. Ideales para trabajar o viajar.",
+      "thumbnail": null,
+      "images": [],
+      "collection": {
+        "title": "Audio"
+      },
+      "tags": [
+        "audio",
+        "inalambrico"
+      ],
+      "featured": true,
+      "variants": [
+        {
+          "id": "variant_headphones_black",
+          "title": "Negro",
+          "sku": "AU-001-BLK",
+          "prices": [
+            {
+              "amount": 549900,
+              "currency_code": "cop"
+            }
+          ],
+          "inventory_quantity": 12
+        },
+        {
+          "id": "variant_headphones_white",
+          "title": "Blanco",
+          "sku": "AU-001-WHT",
+          "prices": [
+            {
+              "amount": 549900,
+              "currency_code": "cop"
+            }
+          ],
+          "inventory_quantity": 8
+        }
+      ]
+    },
+    {
+      "id": "prod_keyboard",
+      "title": "Teclado mecánico",
+      "handle": "teclado-mecanico",
+      "description": "Switches lineales, retroiluminación RGB y estructura en aluminio. Perfecto para escritores y gamers.",
+      "thumbnail": null,
+      "images": [],
+      "collection": {
+        "title": "Computación"
+      },
+      "tags": [
+        "teclado",
+        "mecanico",
+        "gaming"
+      ],
+      "featured": true,
+      "variants": [
+        {
+          "id": "variant_keyboard_gray",
+          "title": "Gris",
+          "sku": "KB-004-GRY",
+          "prices": [
+            {
+              "amount": 729900,
+              "currency_code": "cop"
+            }
+          ],
+          "inventory_quantity": 8
+        },
+        {
+          "id": "variant_keyboard_white",
+          "title": "Blanco",
+          "sku": "KB-004-WHT",
+          "prices": [
+            {
+              "amount": 789900,
+              "currency_code": "cop"
+            }
+          ],
+          "inventory_quantity": 5
+        }
+      ]
+    },
+    {
+      "id": "prod_mouse",
+      "title": "Ratón ergonómico",
+      "handle": "raton-ergonomico",
+      "description": "Curvatura ergonómica, sensor de alta precisión y botones programables para máxima comodidad diaria.",
+      "thumbnail": null,
+      "images": [],
+      "collection": {
+        "title": "Computación"
+      },
+      "tags": [
+        "raton",
+        "ergonomico"
+      ],
+      "featured": true,
+      "variants": [
+        {
+          "id": "variant_mouse_white",
+          "title": "Blanco",
+          "sku": "MO-002-WHT",
+          "prices": [
+            {
+              "amount": 349900,
+              "currency_code": "cop"
+            }
+          ],
+          "inventory_quantity": 20
+        }
+      ]
+    },
+    {
+      "id": "prod_monitor",
+      "title": "Monitor 27\"",
+      "handle": "monitor-27",
+      "description": "Panel IPS QHD, 144 Hz y cobertura de color del 98% sRGB. Pantalla para crear y jugar.",
+      "thumbnail": null,
+      "images": [],
+      "collection": {
+        "title": "Pantallas"
+      },
+      "tags": [
+        "monitor",
+        "qhd",
+        "gaming"
+      ],
+      "featured": false,
+      "variants": [
+        {
+          "id": "variant_monitor_std",
+          "title": "Estándar",
+          "sku": "MN-001-STD",
+          "prices": [
+            {
+              "amount": 1499900,
+              "currency_code": "cop"
+            }
+          ],
+          "inventory_quantity": 5
+        }
+      ]
+    },
+    {
+      "id": "prod_chair",
+      "title": "Silla ergonómica",
+      "handle": "silla-ergonomica",
+      "description": "Soporte lumbar ajustable, reposabrazos 4D y malla transpirable. Diseñada para jornadas largas.",
+      "thumbnail": null,
+      "images": [],
+      "collection": {
+        "title": "Hogar y oficina"
+      },
+      "tags": [
+        "silla",
+        "ergonomica",
+        "oficina"
+      ],
+      "featured": false,
+      "variants": [
+        {
+          "id": "variant_chair_black",
+          "title": "Negra",
+          "sku": "SC-001-BLK",
+          "prices": [
+            {
+              "amount": 1299900,
+              "currency_code": "cop"
+            }
+          ],
+          "inventory_quantity": 4
+        }
+      ]
+    },
+    {
+      "id": "prod_lamp",
+      "title": "Lámpara de escritorio",
+      "handle": "lampara-escritorio",
+      "description": "Temperatura de color regulable, flexo articulado y luz sin parpadeo para tu zona de trabajo.",
+      "thumbnail": null,
+      "images": [],
+      "collection": {
+        "title": "Hogar y oficina"
+      },
+      "tags": [
+        "lampara",
+        "hogar"
+      ],
+      "featured": false,
+      "variants": [
+        {
+          "id": "variant_lamp_white",
+          "title": "Blanca",
+          "sku": "LM-003-WHT",
+          "prices": [
+            {
+              "amount": 289900,
+              "currency_code": "cop"
+            }
+          ],
+          "inventory_quantity": 15
+        }
+      ]
+    }
+  ]
+}
