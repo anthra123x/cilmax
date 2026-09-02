@@ -1,0 +1,28 @@
+{
+  "id": "prod_monitor",
+  "title": "Monitor 27\"",
+  "description": "Panel IPS QHD, 144 Hz y cobertura de color del 98% sRGB. Pantalla para crear y jugar.",
+  "images": [],
+  "category": "pantallas",
+  "tags": [
+    "monitor",
+    "qhd",
+    "gaming"
+  ],
+  "featured": false,
+  "order": 4,
+  "variants": [
+    {
+      "id": "variant_monitor_std",
+      "title": "Estándar",
+      "sku": "MN-001-STD",
+      "prices": [
+        {
+          "amount": 1499900,
+          "currency_code": "cop"
+        }
+      ],
+      "inventory_quantity": 5
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "id": "prod_headphones",
+  "title": "Auriculares inalámbricos",
+  "description": "Cancelación activa de ruido, 30 h de batería y diseño ligero. Ideales para trabajar o viajar.",
+  "images": [],
+  "category": "audio",
+  "tags": [
+    "audio",
+    "inalambrico"
+  ],
+  "featured": true,
+  "order": 1,
+  "variants": [
+    {
+      "id": "variant_headphones_black",
+      "title": "Negro",
+      "sku": "AU-001-BLK",
+      "prices": [
+        {
+          "amount": 549900,
+          "currency_code": "cop"
+        }
+      ],
+      "inventory_quantity": 12
+    },
+    {
+      "id": "variant_headphones_white",
+      "title": "Blanco",
+      "sku": "AU-001-WHT",
+      "prices": [
+        {
+          "amount": 549900,
+          "currency_code": "cop"
+        }
+      ],
+      "inventory_quantity": 8
+    }
+  ]
+}

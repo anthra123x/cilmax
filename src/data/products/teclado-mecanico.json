@@ -1,0 +1,40 @@
+{
+  "id": "prod_keyboard",
+  "title": "Teclado mecánico",
+  "description": "Switches lineales, retroiluminación RGB y estructura en aluminio. Perfecto para escritores y gamers.",
+  "images": [],
+  "category": "computacion",
+  "tags": [
+    "teclado",
+    "mecanico",
+    "gaming"
+  ],
+  "featured": true,
+  "order": 2,
+  "variants": [
+    {
+      "id": "variant_keyboard_gray",
+      "title": "Gris",
+      "sku": "KB-004-GRY",
+      "prices": [
+        {
+          "amount": 729900,
+          "currency_code": "cop"
+        }
+      ],
+      "inventory_quantity": 8
+    },
+    {
+      "id": "variant_keyboard_white",
+      "title": "Blanco",
+      "sku": "KB-004-WHT",
+      "prices": [
+        {
+          "amount": 789900,
+          "currency_code": "cop"
+        }
+      ],
+      "inventory_quantity": 5
+    }
+  ]
+}

@@ -8,6 +8,7 @@ import Footer from '../components/Footer.astro';
 import BottomNav from '../components/BottomNav.astro';
 import CartDrawer from '../components/cart/CartDrawer.tsx';
 import '../styles/global.css';
+import { paletteStyle } from '../lib/palette';
 
 interface Props {
   title?: string;
@@ -21,7 +22,7 @@ const {
 ---
 
 <!doctype html>
-<html lang="es">
+<html lang="es" style={paletteStyle}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

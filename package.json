@@ -27,6 +27,8 @@
   "dependencies": {
     "@astrojs/react": "^6.0.4",
     "@astrojs/vercel": "^11.0.8",
+    "@keystatic/astro": "^6.0.0",
+    "@keystatic/core": "^0.6.9",
     "@medusajs/js-sdk": "^2.19.0",
     "@nanostores/react": "^1.1.0",
     "@neondatabase/serverless": "^1.1.0",

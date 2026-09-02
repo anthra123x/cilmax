@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 // CLI de administración de productos de CilMax.
 //
-// Gestiona la fuente de datos local src/data/products.json (versionable con
-// git). Pensado para que el desarrollador administre la tienda desde la
-// terminal. Cuando se migre a Medusa en producción, estos comandos se
-// sustituyen/descartan a favor del panel de Medusa.
+// Gestiona la fuente de datos local en src/data/products/*.json y
+// src/data/categories/*.json (archivos versionables con git). Es un
+// complemento al panel de administración Keystatic (/keystatic); ambos
+// escriben en los mismos archivos.
 //
 // Uso:
 //   node scripts/products.mjs <comando> [argumentos...]
@@ -17,24 +17,28 @@
 //   rm <handle|id>             Elimina un producto
 //   featured <handle|id> [on|off]  Marca/desmarca un producto como destacado
 //   add-variant <handle|id>    Añade una variante a un producto
-//   collections                Lista colecciones y etiquetas en uso
+//   collections                Lista categorías y etiquetas en uso
 //   help                       Muestra esta ayuda
 //
 // Notas:
+//   - Estructura por archivo: cada producto vive en
+//     src/data/products/<handle>.json y el nombre de archivo ES el handle.
+//   - Las categorías viven en src/data/categories/<slug>.json y los
+//     productos las referencian por slug en el campo `category`.
 //   - Los precios se piden en pesos colombianos (COP, sin decimales,
-//     p. ej. 549900 o 549.900) y se guardan como enteros, tal y como los
-//     maneja Medusa para monedas sin unidad menor.
+//     p. ej. 549900 o 549.900) y se guardan como enteros.
 //   - El handle se genera automáticamente a partir del título si no se indica.
 //   - Si no pasas un valor con --flag, se te pedirá de forma interactiva.
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, rmSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createInterface } from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DATA_FILE = join(__dirname, '..', 'src', 'data', 'products.json');
+const PRODUCTS_DIR = join(__dirname, '..', 'src', 'data', 'products');
+const CATEGORIES_DIR = join(__dirname, '..', 'src', 'data', 'categories');
 
 const DEFAULT_CURRENCY = 'cop';
 const DEFAULT_STOCK = 10;
@@ -43,14 +47,55 @@ const DEFAULT_STOCK = 10;
 // Utilidades de archivo
 // ---------------------------------------------------------------------------
 
-function readData() {
-  const raw = JSON.parse(readFileSync(DATA_FILE, 'utf8'));
-  return raw.products || [];
+function readProducts() {
+  if (!existsSync(PRODUCTS_DIR)) return [];
+  return readdirSync(PRODUCTS_DIR)
+    .filter((f) => f.endsWith('.json'))
+    .map((f) => {
+      const raw = JSON.parse(readFileSync(join(PRODUCTS_DIR, f), 'utf8'));
+      return { ...raw, handle: f.replace(/\.json$/, '') };
+    });
 }
 
-function writeData(products) {
-  writeFileSync(DATA_FILE, JSON.stringify({ products }, null, 2) + '\n');
-  console.log(`✓ Guardado en src/data/products.json (${products.length} productos)`);
+function writeProduct(product) {
+  const { handle, collection, ...rest } = product;
+  const file = join(PRODUCTS_DIR, `${handle}.json`);
+  writeFileSync(file, JSON.stringify(rest, null, 2) + '\n');
+}
+
+function removeProduct(handle) {
+  rmSync(join(PRODUCTS_DIR, `${handle}.json`), { force: true });
+}
+
+function readCategories() {
+  if (!existsSync(CATEGORIES_DIR)) return [];
+  return readdirSync(CATEGORIES_DIR)
+    .filter((f) => f.endsWith('.json'))
+    .map((f) => {
+      const raw = JSON.parse(readFileSync(join(CATEGORIES_DIR, f), 'utf8'));
+      return { ...raw, handle: f.replace(/\.json$/, '') };
+    });
+}
+
+function writeCategory(category) {
+  const { handle, ...rest } = category;
+  writeFileSync(join(CATEGORIES_DIR, `${handle}.json`), JSON.stringify(rest, null, 2) + '\n');
+}
+
+/** Resuelve una categoría: acepta nombre o slug y devuelve su slug,
+ *  creándola en src/data/categories si no existe. */
+function ensureCategory(value) {
+  const cats = readCategories();
+  let match = cats.find((c) => c.handle === value || c.name === value);
+  if (!match) {
+    const slug = slugify(value);
+    match = cats.find((c) => c.handle === slug);
+    if (!match) {
+      match = { name: value, description: '', handle: slug };
+      writeCategory(match);
+    }
+  }
+  return match.handle;
 }
 
 // ---------------------------------------------------------------------------
@@ -118,7 +163,7 @@ function formatProductLine(p) {
 // ---------------------------------------------------------------------------
 
 async function cmdList() {
-  const products = readData();
+  const products = readProducts();
   if (products.length === 0) {
     console.log('No hay productos todavía. Crea uno con: npm run product:new');
     return;
@@ -128,7 +173,7 @@ async function cmdList() {
 }
 
 async function cmdInfo(ref) {
-  const products = readData();
+  const products = readProducts();
   const p = findProduct(products, ref);
   if (!p) {
     console.error(`✗ Producto no encontrado: ${ref}`);
@@ -139,24 +184,21 @@ async function cmdInfo(ref) {
 }
 
 async function cmdNew(args) {
-  const products = readData();
+  const products = readProducts();
   const title = args.title || (await ask('Título del producto'));
   if (!title) {
     console.error('✗ El título es obligatorio.');
     return;
   }
   const description = args.description ?? (await ask('Descripción', ''));
-  const collection =
-    args.collection ?? (await ask('Colección', ''));
+  const collection = args.collection ?? (await ask('Categoría', ''));
   const tagsInput = args.tags ?? (await ask('Etiquetas (separadas por coma)', ''));
   const tags = tagsInput
     ? String(tagsInput).split(',').map((t) => t.trim()).filter(Boolean)
     : [];
-  const priceInput =
-    args.price ?? (await ask('Precio (COP)', '0'));
+  const priceInput = args.price ?? (await ask('Precio (COP)', '0'));
   const stock = Number(args.stock ?? (await ask('Stock', DEFAULT_STOCK)));
-  const variantTitle =
-    args.variant ?? (await ask('Nombre de variante', 'Única'));
+  const variantTitle = args.variant ?? (await ask('Nombre de variante', 'Única'));
   const sku = (args.sku ?? (await ask('SKU', ''))) || null;
   let featured = false;
   if (args.featured !== undefined) {
@@ -172,16 +214,18 @@ async function cmdNew(args) {
     return;
   }
 
+  const category = collection ? ensureCategory(collection) : null;
+
   const product = {
     id: genId('prod'),
     title,
     handle,
     description,
-    thumbnail: null,
     images: [],
-    collection: collection ? { title: collection } : null,
+    category,
     tags,
     featured,
+    order: products.length + 1,
     variants: [
       {
         id: genId('variant'),
@@ -193,25 +237,25 @@ async function cmdNew(args) {
     ],
   };
 
-  products.push(product);
-  writeData(products);
+  writeProduct(product);
   console.log(`\n✓ Producto creado: ${product.title}`);
   console.log(`  Página: /producto/${product.handle}`);
 }
 
 async function cmdEdit(ref, args) {
-  const products = readData();
+  const products = readProducts();
   const p = findProduct(products, ref);
   if (!p) {
     console.error(`✗ Producto no encontrado: ${ref}`);
     process.exitCode = 1;
     return;
   }
+  const oldHandle = p.handle;
 
   if (args.title) p.title = args.title;
   if (args.description !== undefined) p.description = args.description;
   if (args.collection !== undefined) {
-    p.collection = args.collection ? { title: args.collection } : null;
+    p.category = args.collection ? ensureCategory(args.collection) : null;
   }
   if (args.tags !== undefined) {
     p.tags = args.tags.split(',').map((t) => t.trim()).filter(Boolean);
@@ -230,6 +274,9 @@ async function cmdEdit(ref, args) {
   if (args.featured !== undefined) {
     p.featured = /^(1|true|on|si|yes)$/i.test(args.featured);
   }
+  if (args.order !== undefined) {
+    p.order = Number(args.order);
+  }
 
   // Re-generar handle si cambió el título (a menos que se indique uno fijo).
   if (args.title && !args.handle) {
@@ -237,12 +284,13 @@ async function cmdEdit(ref, args) {
   }
   if (args.handle) p.handle = args.handle;
 
-  writeData(products);
+  if (oldHandle !== p.handle) removeProduct(oldHandle);
+  writeProduct(p);
   console.log(`\n✓ Producto actualizado: ${p.title} (/${p.handle})`);
 }
 
 async function cmdRm(ref) {
-  const products = readData();
+  const products = readProducts();
   const idx = products.findIndex((p) => p.handle === ref || p.id === ref);
   if (idx === -1) {
     console.error(`✗ Producto no encontrado: ${ref}`);
@@ -250,13 +298,12 @@ async function cmdRm(ref) {
     return;
   }
   const removed = products[idx];
-  products.splice(idx, 1);
-  writeData(products);
+  removeProduct(removed.handle);
   console.log(`\n✗ Producto eliminado: ${removed.title}`);
 }
 
 async function cmdFeatured(ref, state) {
-  const products = readData();
+  const products = readProducts();
   const p = findProduct(products, ref);
   if (!p) {
     console.error(`✗ Producto no encontrado: ${ref}`);
@@ -265,12 +312,12 @@ async function cmdFeatured(ref, state) {
   }
   const value = state ? /^(1|true|on|si|yes)$/i.test(state) : !p.featured;
   p.featured = value;
-  writeData(products);
+  writeProduct(p);
   console.log(`\n✓ "${p.title}" ${value ? 'marcado ★' : 'desmarcado'} como destacado.`);
 }
 
 async function cmdAddVariant(ref, args) {
-  const products = readData();
+  const products = readProducts();
   const p = findProduct(products, ref);
   if (!p) {
     console.error(`✗ Producto no encontrado: ${ref}`);
@@ -290,23 +337,22 @@ async function cmdAddVariant(ref, args) {
     prices: [{ amount: toAmount(priceInput), currency_code: DEFAULT_CURRENCY }],
     inventory_quantity: stock,
   });
-  writeData(products);
+  writeProduct(p);
   console.log(`\n✓ Variante "${title}" añadida a "${p.title}".`);
 }
 
 function cmdCollections() {
-  const products = readData();
-  const collections = new Set();
+  const categories = readCategories();
+  const products = readProducts();
   const tags = new Set();
   for (const p of products) {
-    if (p.collection?.title) collections.add(p.collection.title);
     for (const t of p.tags || []) tags.add(t);
   }
-  console.log('\nColecciones:');
-  collections.forEach((c) => console.log(`  - ${c}`));
+  console.log('\nCategorías:');
+  categories.forEach((c) => console.log(`  - ${c.name} (${c.handle})`));
   console.log('\nEtiquetas:');
   tags.forEach((t) => console.log(`  - ${t}`));
-  if (collections.size === 0 && tags.size === 0) console.log('  (ninguna)');
+  if (categories.length === 0 && tags.size === 0) console.log('  (ninguna)');
 }
 
 function cmdHelp() {
@@ -327,9 +373,11 @@ Comandos:
 
 Flags comunes para new/edit/add-variant:
   --title, --description, --collection, --tags (coma), --price (COP),
-  --stock, --sku, --variant, --featured (1|0), --handle
+  --stock, --sku, --variant, --featured (1|0), --handle, --order
 
-Nota: los campos no pasados como flag se piden de forma interactiva.`);
+Nota: los campos no pasados como flag se piden de forma interactiva.
+Recomendación: el panel web (/keystatic) es la vía principal para
+administrar la tienda; este CLI es un complemento.`);
 }
 
 // ---------------------------------------------------------------------------

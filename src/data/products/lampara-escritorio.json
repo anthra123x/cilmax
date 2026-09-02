@@ -1,0 +1,27 @@
+{
+  "id": "prod_lamp",
+  "title": "Lámpara de escritorio",
+  "description": "Temperatura de color regulable, flexo articulado y luz sin parpadeo para tu zona de trabajo.",
+  "images": [],
+  "category": "hogar-y-oficina",
+  "tags": [
+    "lampara",
+    "hogar"
+  ],
+  "featured": false,
+  "order": 6,
+  "variants": [
+    {
+      "id": "variant_lamp_white",
+      "title": "Blanca",
+      "sku": "LM-003-WHT",
+      "prices": [
+        {
+          "amount": 289900,
+          "currency_code": "cop"
+        }
+      ],
+      "inventory_quantity": 15
+    }
+  ]
+}

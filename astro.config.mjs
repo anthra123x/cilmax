@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config';
 import vercel from '@astrojs/vercel';
 import react from '@astrojs/react';
+import keystatic from '@keystatic/astro';
 
 // https://astro.build/config
 export default defineConfig({
@@ -12,7 +13,7 @@ export default defineConfig({
     imageService: true,
     maxDuration: 60,
   }),
-  integrations: [react()],
+  integrations: [react(), keystatic()],
   // Nombre del sitio (usado para sitemap y rutas canónicas).
   site: 'https://cilmax-tienda.vercel.app',
   trailingSlash: 'never',

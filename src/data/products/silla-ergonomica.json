@@ -1,0 +1,28 @@
+{
+  "id": "prod_chair",
+  "title": "Silla ergonómica",
+  "description": "Soporte lumbar ajustable, reposabrazos 4D y malla transpirable. Diseñada para jornadas largas.",
+  "images": [],
+  "category": "hogar-y-oficina",
+  "tags": [
+    "silla",
+    "ergonomica",
+    "oficina"
+  ],
+  "featured": false,
+  "order": 5,
+  "variants": [
+    {
+      "id": "variant_chair_black",
+      "title": "Negra",
+      "sku": "SC-001-BLK",
+      "prices": [
+        {
+          "amount": 1299900,
+          "currency_code": "cop"
+        }
+      ],
+      "inventory_quantity": 4
+    }
+  ]
+}

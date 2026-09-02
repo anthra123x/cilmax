@@ -1,0 +1,27 @@
+{
+  "id": "prod_mouse",
+  "title": "Ratón ergonómico",
+  "description": "Curvatura ergonómica, sensor de alta precisión y botones programables para máxima comodidad diaria.",
+  "images": [],
+  "category": "computacion",
+  "tags": [
+    "raton",
+    "ergonomico"
+  ],
+  "featured": true,
+  "order": 3,
+  "variants": [
+    {
+      "id": "variant_mouse_white",
+      "title": "Blanco",
+      "sku": "MO-002-WHT",
+      "prices": [
+        {
+          "amount": 349900,
+          "currency_code": "cop"
+        }
+      ],
+      "inventory_quantity": 20
+    }
+  ]
+}
