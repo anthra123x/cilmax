@@ -16,13 +16,15 @@ function parseCatalogForm(formData: FormData) {
     .filter(Boolean);
   const categoryIdRaw = formData.get('category_id');
   const variants: { id: string; title: string; sku: string | null; price: number; currency: string; inventory_quantity: number }[] = [];
-  const rawVariants = String(formData.get('variants') ?? '')
-    .split('\n')
-    .map((s) => s.trim())
-    .filter(Boolean);
-  for (const line of rawVariants) {
-    const [vTitle = '', vSku = '', vPrice = '', vStock = '0'] = line.split(',').map((s) => s.trim());
-    const price = Number(vPrice);
+  const vTitles = formData.getAll('vtitle[]');
+  const vSkus = formData.getAll('vsku[]');
+  const vPrices = formData.getAll('vprice[]');
+  const vStocks = formData.getAll('vstock[]');
+  for (let i = 0; i < vTitles.length; i++) {
+    const vTitle = String(vTitles[i] ?? '').trim();
+    const vSku = String(vSkus[i] ?? '').trim();
+    const price = Number(String(vPrices[i] ?? '').trim());
+    const stock = Number(String(vStocks[i] ?? '').trim());
     if (!vTitle || !Number.isFinite(price)) continue;
     variants.push({
       id: `variant_${slugify(vTitle)}_${Math.random().toString(36).slice(2, 8)}`,
@@ -30,7 +32,7 @@ function parseCatalogForm(formData: FormData) {
       sku: vSku || null,
       price,
       currency: 'cop',
-      inventory_quantity: Number(vStock) || 0,
+      inventory_quantity: Number.isFinite(stock) ? stock : 0,
     });
   }
   return {

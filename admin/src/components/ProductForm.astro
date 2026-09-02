@@ -28,20 +28,12 @@ const { rows: categories } = await db.query(
   `SELECT id, slug, name FROM categories WHERE store_id = $1 ORDER BY name ASC`,
   ['cilmax'],
 );
-
-const existingHandleFlag = { value: '' };
-
-function variantLines(p: Product | undefined): string {
-  if (!p || p.variants.length === 0) return '';
-  return p.variants
-    .map((v) => [v.title, v.sku ?? '', String(v.price), String(v.inventory_quantity)].join(','))
-    .join('\n');
-}
----<AdminLayout title={title}>
+---
+<AdminLayout title={title}>
   <h1>{heading}</h1>
 
   <div class="card">
-    <form method="post" action="/api/productos">
+    <form method="post" action="/api/productos" id="product-form">
       {productId && (
         <>
           <input type="hidden" name="_action" value="update" />
@@ -50,62 +42,116 @@ function variantLines(p: Product | undefined): string {
       )}
       <input type="hidden" name="handle" value={product?.handle ?? ''} />
 
-      <div class="field">
-        <label for="title">Nombre del producto *</label>
-        <input id="title" name="title" type="text" required value={product?.title} placeholder="Ej. Auriculares inalámbricos" />
-      </div>
-
-      <div class="row">
+      <section class="field">
+        <h2 class="section-title">Información básica</h2>
         <div class="field">
-          <label for="category_id">Categoría</label>
-          <select id="category_id" name="category_id">
-            <option value="">— Sin categoría —</option>
-            {categories.map((c) => (
-              <option value={c.id} selected={String(product?.category_id) === String(c.id)}>{c.name}</option>
-            ))}
-          </select>
+          <label for="title">Nombre del producto *</label>
+          <input id="title" name="title" type="text" required value={product?.title} placeholder="Ej. Auriculares inalámbricos" />
         </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="category_id">Categoría</label>
+            <select id="category_id" name="category_id">
+              <option value="">— Sin categoría —</option>
+              {categories.map((c) => (
+                <option value={c.id} selected={String(product?.category_id) === String(c.id)}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+          <div class="field">
+            <label for="order">Orden en el catálogo</label>
+            <input id="order" name="order" type="number" value={product?.sort_order ?? 100} />
+          </div>
+          <div class="field" style="display:flex;align-items:flex-end">
+            <label class="switch" for="featured">
+              <input id="featured" name="featured" type="checkbox" checked={product?.featured} />
+              Destacado en portada
+            </label>
+          </div>
+        </div>
+
         <div class="field">
-          <label for="order">Orden en el catálogo</label>
-          <input id="order" name="order" type="number" value={product?.sort_order ?? 100} />
+          <label for="description">Descripción</label>
+          <textarea id="description" name="description" rows="4" placeholder="Describe el producto…">{product?.description}</textarea>
         </div>
-        <div class="field" style="display:flex;align-items:flex-end">
-          <label class="switch" for="featured">
-            <input id="featured" name="featured" type="checkbox" checked={product?.featured} />
-            Destacado en portada
-          </label>
-        </div>
-      </div>
+      </section>
 
-      <div class="field">
-        <label for="description">Descripción</label>
-        <textarea id="description" name="description">{product?.description}</textarea>
-      </div>
-
-      <div class="field">
-        <label for="images">Imágenes</label>
-        <textarea id="images" name="images" class="code" rows="4">{product?.images.join('\n')}</textarea>
-        <p class="help">Pega aquí los enlaces (una URL por línea) o sube archivos desde tu computador con el botón de abajo.</p>
-
+      <section class="field section">
+        <h2 class="section-title">Imágenes</h2>
         <div class="row" style="align-items:center">
           <input id="file-input" type="file" accept="image/*" multiple />
           <button id="upload-btn" class="btn" type="button">Subir imágenes</button>
           <span id="upload-status" class="help" role="status" aria-live="polite"></span>
         </div>
-
+        <p class="help">Selecciona las fotos desde tu computador. También puedes pegar enlaces en el campo de abajo (una por línea).</p>
+        <div class="field" style="margin-top:8px">
+          <label for="images">Enlaces de imagen (opcional)</label>
+          <textarea id="images" name="images" class="code" rows="3">{product?.images.join('\n')}</textarea>
+        </div>
         <div id="image-preview" class="image-preview" aria-label="Vista previa de las imágenes"></div>
-      </div>
+      </section>
 
-      <div class="field">
-        <label for="variants">Variantes (una por línea: nombre, SKU, precio, stock)</label>
-        <textarea id="variants" name="variants" class="code">{variantLines(product)}</textarea>
-        <p class="help">Ejemplo: Negro, AU-001-BLK, 549900, 12</p>
-      </div>
+      <section class="field section">
+        <h2 class="section-title">Variantes</h2>
+        <p class="help">Cada variante es un color/tamaño distinto del producto. Completa los campos de cada una.</p>
+        <div id="variants-container">
+          {product && product.variants.length > 0 ? (
+            product.variants.map((v, i) => (
+              <div class="variant-row" data-variant-row>
+                <div class="variant-grid">
+                  <div class="field">
+                    <label>Nombre</label>
+                    <input type="text" name="vtitle[]" value={v.title} placeholder="Ej. Negro" required />
+                  </div>
+                  <div class="field">
+                    <label>SKU</label>
+                    <input type="text" name="vsku[]" value={v.sku ?? ''} placeholder="Ej. AU-001-BLK" />
+                  </div>
+                  <div class="field">
+                    <label>Precio (COP) *</label>
+                    <input type="number" name="vprice[]" value={v.price} placeholder="Ej. 549900" required />
+                  </div>
+                  <div class="field">
+                    <label>Stock</label>
+                    <input type="number" name="vstock[]" value={v.inventory_quantity} placeholder="Ej. 12" />
+                  </div>
+                  <button type="button" class="btn ghost variant-remove" aria-label="Quitar variante">✕</button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div class="variant-row" data-variant-row>
+              <div class="variant-grid">
+                <div class="field">
+                  <label>Nombre</label>
+                  <input type="text" name="vtitle[]" placeholder="Ej. Negro" required />
+                </div>
+                <div class="field">
+                  <label>SKU</label>
+                  <input type="text" name="vsku[]" placeholder="Ej. AU-001-BLK" />
+                </div>
+                <div class="field">
+                  <label>Precio (COP) *</label>
+                  <input type="number" name="vprice[]" placeholder="Ej. 549900" required />
+                </div>
+                <div class="field">
+                  <label>Stock</label>
+                  <input type="number" name="vstock[]" placeholder="Ej. 12" />
+                </div>
+                <button type="button" class="btn ghost variant-remove" aria-label="Quitar variante">✕</button>
+              </div>
+            </div>
+          )}
+        </div>
+        <button type="button" class="btn ghost" id="add-variant">+ Añadir variante</button>
+      </section>
 
-      <div class="field">
-        <label for="tags">Etiquetas (separadas por coma)</label>
-        <input id="tags" name="tags" type="text" value={product?.tags.join(', ')} />
-      </div>
+      <section class="field section">
+        <h2 class="section-title">Etiquetas</h2>
+        <p class="help">Separadas por coma. Ayudan a clasificar el producto.</p>
+        <input id="tags" name="tags" type="text" value={product?.tags.join(', ')} placeholder="Ej. audio, inalámbrico" />
+      </section>
 
       <button class="btn" type="submit">{productId ? 'Guardar cambios' : 'Crear producto'}</button>
 
@@ -198,6 +244,44 @@ function variantLines(p: Product | undefined): string {
         } finally {
           btn.disabled = false;
         }
+      });
+    }
+
+    const variantContainer = document.getElementById('variants-container');
+    const addVariantBtn = document.getElementById('add-variant');
+    const form = document.getElementById('product-form');
+
+    function makeVariantRow() {
+      const row = document.createElement('div');
+      row.className = 'variant-row';
+      row.innerHTML = `
+        <div class="variant-grid">
+          <div class="field"><label>Nombre</label><input type="text" name="vtitle[]" placeholder="Ej. Negro" required /></div>
+          <div class="field"><label>SKU</label><input type="text" name="vsku[]" placeholder="Ej. AU-001-BLK" /></div>
+          <div class="field"><label>Precio (COP) *</label><input type="number" name="vprice[]" placeholder="Ej. 549900" required /></div>
+          <div class="field"><label>Stock</label><input type="number" name="vstock[]" placeholder="Ej. 12" /></div>
+          <button type="button" class="btn ghost variant-remove" aria-label="Quitar variante">✕</button>
+        </div>`;
+      row.querySelector('.variant-remove')!.addEventListener('click', () => row.remove());
+      return row;
+    }
+
+    if (variantContainer && addVariantBtn) {
+      addVariantBtn.addEventListener('click', () => {
+        variantContainer.append(makeVariantRow());
+      });
+      variantContainer.querySelectorAll<HTMLButtonElement>('.variant-remove').forEach((b) => {
+        b.addEventListener('click', () => b.closest('.variant-row')?.remove());
+      });
+    }
+
+    if (form) {
+      form.addEventListener('submit', () => {
+        const rows = variantContainer?.querySelectorAll<HTMLDivElement>('.variant-row') ?? [];
+        rows.forEach((row) => {
+          const title = row.querySelector<HTMLInputElement>('input[name="vtitle[]"]')?.value.trim() ?? '';
+          if (!title) row.remove();
+        });
       });
     }
   </script>

@@ -56,6 +56,11 @@ const active = Astro.url.pathname;
       .card h2 { margin: 0 0 16px; font-size: 17px; }
       label { display: block; font-size: 13px; font-weight: 700; margin: 0 0 6px; }
       .field { margin-bottom: 16px; }
+      .section-title { font-size: 14px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+      .section { padding-top: 4px; }
+      .variant-row { border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 12px; background: #fbfcfc; }
+      .variant-grid { display: grid; grid-template-columns: repeat(4, 1fr) auto; gap: 12px; align-items: end; }
+      .variant-grid .field { margin-bottom: 0; }
       input[type=text], input[type=number], input[type=password], textarea, select {
         width: 100%; padding: 10px 12px; border: 1px solid var(--border);
         border-radius: 8px; font-size: 14px; font-family: inherit; outline: none; background: #fff;
@@ -99,6 +104,7 @@ const active = Astro.url.pathname;
         .mobilehide { display: none; }
         .content { padding: 16px; }
         .row, .row2 { grid-template-columns: 1fr; }
+        .variant-grid { grid-template-columns: 1fr 1fr; }
       }
     </style>
   </head>
