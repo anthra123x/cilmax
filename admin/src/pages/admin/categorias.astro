@@ -1,0 +1,55 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getDb } from '../../lib/db';
+
+const db = getDb();
+const { rows } = await db.query(
+  `SELECT c.*, (SELECT count(*) FROM products p WHERE p.category_id = c.id) AS product_count
+   FROM categories c WHERE c.store_id = $1 ORDER BY c.name ASC`,
+  ['cilmax'],
+);
+const categories = rows;
+---<AdminLayout title="Categorías">
+  <h1>Categorías</h1>
+
+  <div class="card">
+    <h2>Nueva categoría</h2>
+    <form method="post" action="/api/categorias">
+      <div class="field">
+        <label for="name">Nombre</label>
+        <input id="name" name="name" type="text" required placeholder="Ej. Audio" />
+      </div>
+      <div class="field">
+        <label for="description">Descripción (opcional)</label>
+        <input id="description" name="description" type="text" />
+      </div>
+      <button class="btn" type="submit">Crear categoría</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Categorías existentes ({categories.length})</h2>
+    <table style="width:100%;border-collapse:collapse;font-size:14px">
+      <thead>
+        <tr>
+          <th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);color:var(--muted)">Nombre</th>
+          <th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);color:var(--muted)">Slug</th>
+          <th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);color:var(--muted)">Descripción</th>
+          <th style="text-align:right;padding:8px 10px;border-bottom:1px solid var(--border);color:var(--muted)">Productos</th>
+        </tr>
+      </thead>
+      <tbody>
+        {categories.map((c) => {
+          return (
+            <tr>
+              <td style="padding:8px 10px;border-bottom:1px solid var(--border)"><strong>{c.name}</strong></td>
+              <td style="padding:8px 10px;border-bottom:1px solid var(--border)"><span class="log">/{c.slug}</span></td>
+              <td style="padding:8px 10px;border-bottom:1px solid var(--border)">{c.description ?? '—'}</td>
+              <td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:right">{c.product_count}</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  </div>
+</AdminLayout>

@@ -1,0 +1,33 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getTheme } from '../../lib/catalog';
+
+const theme = await getTheme();
+---<AdminLayout title="Colores de marca">
+  <h1>Colores de marca</h1>
+  <p style="margin:0 0 16px;color:var(--muted);font-size:14px">
+    Estos colores se aplican en toda la tienda al instante (verde azulado principal y dorado de acento).
+  </p>
+
+  <div class="card">
+    <form method="post" action="/api/colores">
+      <div class="row2">
+        <div class="field">
+          <label for="primary_color">Color primario</label>
+          <div style="display:flex;gap:10px;align-items:center">
+            <input id="primary_color" name="primary_color" type="color" value={theme.primary_color} style="width:52px;height:40px;padding:2px;border:1px solid var(--border);border-radius:8px" />
+            <input name="primary_text" type="text" value={theme.primary_color} style="flex:1" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="gold_color">Color dorado</label>
+          <div style="display:flex;gap:10px;align-items:center">
+            <input id="gold_color" name="gold_color" type="color" value={theme.gold_color} style="width:52px;height:40px;padding:2px;border:1px solid var(--border);border-radius:8px" />
+            <input name="gold_text" type="text" value={theme.gold_color} style="flex:1" />
+          </div>
+        </div>
+      </div>
+      <button class="btn" type="submit">Guardar colores</button>
+    </form>
+  </div>
+</AdminLayout>

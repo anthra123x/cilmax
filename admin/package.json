@@ -1,0 +1,24 @@
+{
+  "name": "cilmax-admin",
+  "version": "1.0.0",
+  "description": "Panel de administración CilMax: gestión de productos, categorías y colores de marca.",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/vercel": "^11.0.8",
+    "@neondatabase/serverless": "^1.1.0",
+    "astro": "^7.2.9"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@types/node": "^26.4.1",
+    "typescript": "^6.0.3"
+  }
+}

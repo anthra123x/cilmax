@@ -1,0 +1,31 @@
+---
+import ProductForm from '../../../components/ProductForm.astro';
+import { getDb } from '../../../lib/db';
+
+const rawHandle = Astro.params.handle ?? '';
+const db = getDb();
+const { rows } = await db.query(
+  `SELECT p.id, p.title, p.handle, p.description, p.images, p.tags, p.featured, p.sort_order, p.category_id
+   FROM products p WHERE p.store_id = $1 AND (p.handle = $2 OR p.id = $2)
+   LIMIT 1`,
+  ['cilmax', rawHandle],
+);
+if (rows.length === 0) return Astro.redirect('/admin');
+const row = rows[0];
+const { rows: variantRows } = await db.query(
+  `SELECT title, sku, price, inventory_quantity FROM product_variants WHERE product_id = $1 ORDER BY title ASC`,
+  [row.id],
+);
+const product = {
+  id: row.id,
+  title: row.title,
+  handle: row.handle,
+  description: row.description,
+  images: Array.isArray(row.images) ? row.images : [],
+  tags: Array.isArray(row.tags) ? row.tags : [],
+  featured: row.featured,
+  sort_order: Number(row.sort_order),
+  category_id: row.category_id,
+  variants: variantRows,
+};
+---<ProductForm title={`Editar · ${product.title}`} heading={`Editar producto: ${product.title}`} product={product} />

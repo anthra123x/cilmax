@@ -1,0 +1,126 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+import { getDb } from '../lib/db';
+
+interface Product {
+  id: string;
+  title: string;
+  handle: string;
+  description: string | null;
+  images: string[];
+  tags: string[];
+  featured: boolean;
+  sort_order: number;
+  category_id: number | null;
+  variants: Array<{ title: string; sku: string | null; price: number; inventory_quantity: number }>;
+}
+
+interface Props {
+  title: string;
+  heading: string;
+  product?: Product;
+}
+
+const { title, heading, product } = Astro.props;
+const productId = product?.id ?? '';
+const db = getDb();
+const { rows: categories } = await db.query(
+  `SELECT id, slug, name FROM categories WHERE store_id = $1 ORDER BY name ASC`,
+  ['cilmax'],
+);
+
+const existingHandleFlag = { value: '' };
+
+function variantLines(p: Product | undefined): string {
+  if (!p || p.variants.length === 0) return '';
+  return p.variants
+    .map((v) => [v.title, v.sku ?? '', String(v.price), String(v.inventory_quantity)].join(','))
+    .join('\n');
+}
+---<AdminLayout title={title}>
+  <h1>{heading}</h1>
+
+  <div class="card">
+    <form method="post" action="/api/productos">
+      {productId && (
+        <>
+          <input type="hidden" name="_action" value="update" />
+          <input type="hidden" name="id" value={productId} />
+        </>
+      )}
+      <input type="hidden" name="handle" value={product?.handle ?? ''} />
+
+      <div class="field">
+        <label for="title">Nombre del producto *</label>
+        <input id="title" name="title" type="text" required value={product?.title} placeholder="Ej. Auriculares inalámbricos" />
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="category_id">Categoría</label>
+          <select id="category_id" name="category_id">
+            <option value="">— Sin categoría —</option>
+            {categories.map((c) => (
+              <option value={c.id} selected={String(product?.category_id) === String(c.id)}>{c.name}</option>
+            ))}
+          </select>
+        </div>
+        <div class="field">
+          <label for="order">Orden en el catálogo</label>
+          <input id="order" name="order" type="number" value={product?.sort_order ?? 100} />
+        </div>
+        <div class="field" style="display:flex;align-items:flex-end">
+          <label class="switch" for="featured">
+            <input id="featured" name="featured" type="checkbox" checked={product?.featured} />
+            Destacado en portada
+          </label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="description">Descripción</label>
+        <textarea id="description" name="description">{product?.description}</textarea>
+      </div>
+
+      <div class="field">
+        <label for="images">Imágenes (una URL por línea)</label>
+        <textarea id="images" name="images" class="code">{product?.images.join('\n')}</textarea>
+        <p class="help">Sube las imágenes a Internet (p. ej. Google Drive / Imgur) y pega aquí los enlaces.</p>
+      </div>
+
+      <div class="field">
+        <label for="variants">Variantes (una por línea: nombre, SKU, precio, stock)</label>
+        <textarea id="variants" name="variants" class="code">{variantLines(product)}</textarea>
+        <p class="help">Ejemplo: Negro, AU-001-BLK, 549900, 12</p>
+      </div>
+
+      <div class="field">
+        <label for="tags">Etiquetas (separadas por coma)</label>
+        <input id="tags" name="tags" type="text" value={product?.tags.join(', ')} />
+      </div>
+
+      <button class="btn" type="submit">{productId ? 'Guardar cambios' : 'Crear producto'}</button>
+
+      {productId && (
+        <span style="margin-left:12px">
+          <form method="post" action="/api/productos" style="display:inline">
+            <input type="hidden" name="_action" value="delete" />
+            <input type="hidden" name="id" value={productId} />
+            <button class="btn danger" type="submit">Eliminar producto</button>
+          </form>
+        </span>
+      )}
+    </form>
+  </div>
+
+  {product && (
+    <div class="card">
+      <h2>Vista previa en la tienda</h2>
+      <p style="margin:0">
+        <a href={`${import.meta.env.SITE ?? 'https://cilmax.vercel.app'}/producto/${product.handle}`} target="_blank" class="action">
+          /producto/{product.handle}
+        </a>
+      </p>
+    </div>
+  )}
+</AdminLayout>
