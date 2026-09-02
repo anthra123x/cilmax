@@ -20,6 +20,7 @@ const priceLabel = defaultVariant
   : null;
 const image = product.images[0]?.url ?? product.thumbnail;
 const message = `Hola CilMax,\nQuiero pedir: ${product.title}${priceLabel ? ` (${priceLabel})` : ''}\nQuedo atento a la confirmación.`;
+const featured = product.featured;
 ---
 
 <article class="product-card">
@@ -32,6 +33,11 @@ const message = `Hola CilMax,\nQuiero pedir: ${product.title}${priceLabel ? ` ($
           <div class="product-card__placeholder" aria-hidden="true">
             <span>{product.title.slice(0, 1)}</span>
           </div>
+        )
+      }
+      {
+        featured && (
+          <span class="product-card__badge">Destacado</span>
         )
       }
     </div>
@@ -71,9 +77,9 @@ const message = `Hola CilMax,\nQuiero pedir: ${product.title}${priceLabel ? ` ($
   }
 
   .product-card:hover {
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 10px 26px rgba(0, 107, 117, 0.12), 0 0 0 1px rgba(212, 175, 55, 0.22);
     transform: translateY(-3px);
-    border-color: rgba(8, 145, 178, 0.3);
+    border-color: rgba(212, 175, 55, 0.5);
   }
 
   .product-card__link {
@@ -83,6 +89,7 @@ const message = `Hola CilMax,\nQuiero pedir: ${product.title}${priceLabel ? ` ($
   }
 
   .product-card__media {
+    position: relative;
     aspect-ratio: 1 / 1;
     background-color: var(--color-surface-muted);
     border-bottom: 1px solid var(--color-border);
@@ -111,6 +118,21 @@ const message = `Hola CilMax,\nQuiero pedir: ${product.title}${priceLabel ? ` ($
     flex-direction: column;
     gap: 3px;
     padding: var(--space-4) var(--space-4) var(--space-3);
+  }
+
+  .product-card__badge {
+    position: absolute;
+    top: var(--space-2);
+    left: var(--space-2);
+    z-index: 2;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    background: linear-gradient(135deg, var(--color-gold-hover), var(--color-gold));
+    color: #1f1a04;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.35);
   }
 
   .product-card__collection {
@@ -147,7 +169,7 @@ const message = `Hola CilMax,\nQuiero pedir: ${product.title}${priceLabel ? ` ($
     font-size: var(--font-size-sm);
     font-weight: 600;
     white-space: nowrap;
-    transition: background-color 0.2s ease, transform 0.12s ease;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.12s ease;
   }
 
   .product-card__cta svg {
@@ -157,7 +179,12 @@ const message = `Hola CilMax,\nQuiero pedir: ${product.title}${priceLabel ? ` ($
   }
 
   .product-card__cta:hover {
-    background-color: #0e6e3a;
+    background-color: var(--color-primary-hover);
+    box-shadow: 0 6px 16px rgba(212, 175, 55, 0.3);
+  }
+
+  .product-card__cta:hover svg {
+    color: var(--color-gold-bright);
   }
 
   .product-card__cta:active {

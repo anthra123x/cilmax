@@ -14,11 +14,11 @@
 }
 
 :root {
-  /* ---- Paleta de marca CilMax (rediseño: fresca y liviana) ----
-     Fondo gris muy tenue (#FAFAFA) + superficies blancas para que las
-     tarjetas respiren. Acento único cian/turquesa (#0891B2) en acciones
-     principales, enlaces y detalles del navbar. Dorado: acento secundario
-     de marca (estados activos / micro). Verde WhatsApp para CTAs de pedido. */
+  /* ---- Paleta de marca CilMax (oficial, desde el logo) ----
+     Turquesa #008A93 / #0B6B75: primario interactivo, links activos,
+     hovers y títulos destacados. Dorado #D4AF37 / #E5BA4D: acento para
+     insignias, ofertas, bordes de botones secundarios y detalles de marca.
+     Blanco / gris claro: fondo de página y tarjetas, vitrina limpia. */
   --color-bg: #fafafa;
   --color-surface: #ffffff;
   --color-surface-muted: #f4f6f8;
@@ -26,24 +26,24 @@
   --color-text-muted: #6b7280;
   --color-border: #e7e9ee;
 
-  /* Primario (cian / turquesa) */
-  --color-primary: #0891b2;
-  --color-primary-hover: #0e7490;
-  --color-primary-soft: #e0f7fb;
+  /* Primario (turquesa / teal de marca) */
+  --color-primary: #008a93;
+  --color-primary-hover: #0b6b75;
+  --color-primary-soft: #e3f4f5;
 
-  /* Secundario (dorado / oro metálico) */
+  /* Secundario (dorado / oro metálico de marca) */
   --color-gold: #d4af37;
   --color-gold-hover: #e5ba4d;
   --color-gold-soft: #faf3dd;
 
   /* Accentos (alias para no romper el resto de componentes) */
-  --color-accent: #0891b2;
-  --color-accent-hover: #0e7490;
-  --color-accent-soft: #e0f7fb;
+  --color-accent: #008a93;
+  --color-accent-hover: #0b6b75;
+  --color-accent-soft: #e3f4f5;
 
-  /* Verde WhatsApp para CTA de pedido directo */
-  --color-whatsapp: #128c4a;
-  --color-whatsapp-soft: #e7f6ee;
+  /* Turquesa de marca para CTA de pedido por WhatsApp */
+  --color-whatsapp: #008a93;
+  --color-whatsapp-soft: #e3f4f5;
 
   --color-danger: #b91c1c;
 
@@ -76,9 +76,9 @@
   --radius-pill: 999px;
 
   /* ---- Sombras ---- */
-  --shadow-sm: 0 1px 2px rgba(17, 24, 39, 0.05);
-  --shadow-md: 0 6px 20px rgba(17, 24, 39, 0.09);
-  --shadow-lg: 0 16px 40px rgba(17, 24, 39, 0.12);
+  --shadow-sm: 0 1px 2px rgba(0, 107, 117, 0.06);
+  --shadow-md: 0 6px 20px rgba(0, 107, 117, 0.1);
+  --shadow-lg: 0 16px 40px rgba(0, 107, 117, 0.14);
 
   /* ---- Layout ---- */
   --container-max: 1200px;
@@ -169,6 +169,7 @@ button {
 
 .btn--primary:hover {
   background-color: var(--color-primary-hover);
+  box-shadow: 0 8px 20px rgba(0, 107, 117, 0.22), 0 0 0 3px rgba(212, 175, 55, 0.16);
 }
 
 .btn--secondary {
@@ -186,19 +187,24 @@ button {
 }
 
 .btn--whatsapp:hover {
-  background-color: #0e6e3a;
+  background-color: var(--color-primary-hover);
+  box-shadow: 0 8px 20px rgba(212, 175, 55, 0.26);
+}
+
+.btn--whatsapp:hover svg {
+  color: var(--color-gold-bright);
 }
 
 .btn--ghost {
   background-color: transparent;
   color: var(--color-text-muted);
-  border-color: var(--color-border);
+  border-color: var(--color-gold);
 }
 
 .btn--ghost:hover {
   color: var(--color-primary);
   border-color: var(--color-primary);
-  background-color: var(--color-surface);
+  background-color: var(--color-gold-soft);
 }
 
 /* ---- Accesibilidad: foco visible ---- */
@@ -242,8 +248,8 @@ button {
   display: grid;
   place-items: center;
   border-radius: var(--radius-pill);
-  background-color: var(--color-accent);
-  color: #ffffff;
+  background-color: var(--color-gold);
+  color: #1f1a04;
   font-size: 0.7rem;
   font-weight: 700;
   line-height: 1;
@@ -752,6 +758,11 @@ button {
   position: relative;
 }
 
+/* Carrito en estado activo: ícono con el acento dorado de marca */
+.bottom-nav__link--active .bottom-nav__icon--cart {
+  color: var(--color-gold);
+}
+
 .bottom-nav__label {
   line-height: 1;
 }
@@ -767,8 +778,8 @@ button {
   display: grid;
   place-items: center;
   border-radius: var(--radius-pill);
-  background-color: var(--color-accent);
-  color: #ffffff;
+  background-color: var(--color-gold);
+  color: #1f1a04;
   font-size: 0.65rem;
   font-weight: 700;
   line-height: 1;

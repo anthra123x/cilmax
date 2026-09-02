@@ -70,11 +70,22 @@ const navLinks = [
   }
 
   .header__logo {
+    display: inline-flex;
+    align-items: baseline;
     font-size: 1.5rem;
     font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--color-text);
     white-space: nowrap;
+  }
+
+  .header__logo::after {
+    content: '';
+    width: 7px;
+    height: 7px;
+    margin-left: 3px;
+    border-radius: 50%;
+    background-color: var(--color-gold);
   }
 
   .header__logo span {
@@ -139,11 +150,16 @@ const navLinks = [
     font-size: var(--font-size-sm);
     font-weight: 600;
     white-space: nowrap;
-    transition: background-color 0.2s ease, transform 0.12s ease;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.12s ease;
   }
 
   .header__whatsapp:hover {
-    background-color: #0e6e3a;
+    background-color: var(--color-primary-hover);
+    box-shadow: 0 6px 16px rgba(212, 175, 55, 0.3);
+  }
+
+  .header__whatsapp:hover svg {
+    color: var(--color-gold-bright);
   }
 
   .header__whatsapp:active {
