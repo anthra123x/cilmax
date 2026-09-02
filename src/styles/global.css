@@ -3,24 +3,33 @@
    Tokens de diseño + estilos base. CSS puro, sin dependencias.
    ============================================================ */
 
-:root {
-  /* ---- Paleta de marca CilMax ----
-     Turquesa/Cian oscuro (#008A93 / #0B6B75): primario, textos destacados,
-     botones de acción, enlaces y elementos resaltados.
-     Dorado/Metal (#D4AF37 / #E5BA4D): secundario, bordes, acentos, estados
-     activos y micro-interacciones.
-     Fondo: blanco limpio para contraste y legibilidad. */
-  --color-bg: #ffffff;
-  --color-surface: #ffffff;
-  --color-surface-muted: #f4fafb;
-  --color-text: #0f2b2e;
-  --color-text-muted: #5b7376;
-  --color-border: #dbe7e8;
+/* Fuente de marca: Plus Jakarta Sans (variable, latin), auto-hospedada
+   en /public/fonts para no depender de terceros. */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url('/fonts/plus-jakarta-sans-latin-variable.woff2') format('woff2');
+}
 
-  /* Primario (turquesa / cian oscuro) */
-  --color-primary: #008a93;
-  --color-primary-hover: #0b6b75;
-  --color-primary-soft: #e0f4f5;
+:root {
+  /* ---- Paleta de marca CilMax (rediseño: fresca y liviana) ----
+     Fondo gris muy tenue (#FAFAFA) + superficies blancas para que las
+     tarjetas respiren. Acento único cian/turquesa (#0891B2) en acciones
+     principales, enlaces y detalles del navbar. Dorado: acento secundario
+     de marca (estados activos / micro). Verde WhatsApp para CTAs de pedido. */
+  --color-bg: #fafafa;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f4f6f8;
+  --color-text: #111827;
+  --color-text-muted: #6b7280;
+  --color-border: #e7e9ee;
+
+  /* Primario (cian / turquesa) */
+  --color-primary: #0891b2;
+  --color-primary-hover: #0e7490;
+  --color-primary-soft: #e0f7fb;
 
   /* Secundario (dorado / oro metálico) */
   --color-gold: #d4af37;
@@ -28,14 +37,18 @@
   --color-gold-soft: #faf3dd;
 
   /* Accentos (alias para no romper el resto de componentes) */
-  --color-accent: #008a93;
-  --color-accent-hover: #0b6b75;
-  --color-accent-soft: #e0f4f5;
+  --color-accent: #0891b2;
+  --color-accent-hover: #0e7490;
+  --color-accent-soft: #e0f7fb;
+
+  /* Verde WhatsApp para CTA de pedido directo */
+  --color-whatsapp: #128c4a;
+  --color-whatsapp-soft: #e7f6ee;
 
   --color-danger: #b91c1c;
 
   /* ---- Tipografía ---- */
-  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
@@ -63,9 +76,9 @@
   --radius-pill: 999px;
 
   /* ---- Sombras ---- */
-  --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.06);
-  --shadow-md: 0 4px 12px rgba(28, 25, 23, 0.08);
-  --shadow-lg: 0 12px 32px rgba(28, 25, 23, 0.12);
+  --shadow-sm: 0 1px 2px rgba(17, 24, 39, 0.05);
+  --shadow-md: 0 6px 20px rgba(17, 24, 39, 0.09);
+  --shadow-lg: 0 16px 40px rgba(17, 24, 39, 0.12);
 
   /* ---- Layout ---- */
   --container-max: 1200px;
@@ -167,15 +180,25 @@ button {
   background-color: var(--color-gold-hover);
 }
 
+.btn--whatsapp {
+  background-color: var(--color-whatsapp);
+  color: #ffffff;
+}
+
+.btn--whatsapp:hover {
+  background-color: #0e6e3a;
+}
+
 .btn--ghost {
   background-color: transparent;
-  color: var(--color-primary);
-  border-color: var(--color-gold);
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
 }
 
 .btn--ghost:hover {
+  color: var(--color-primary);
   border-color: var(--color-primary);
-  background-color: var(--color-primary-soft);
+  background-color: var(--color-surface);
 }
 
 /* ---- Accesibilidad: foco visible ---- */
@@ -184,32 +207,8 @@ button {
   outline-offset: 2px;
 }
 
-/* ---- Dark mode (respeto por sistema) ---- */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #0d1b1d;
-    --color-surface: #132528;
-    --color-surface-muted: #1a3033;
-    --color-text: #eefcfc;
-    --color-text-muted: #9fb9bb;
-    --color-border: #2a4a4d;
-
-    --color-primary: #22c3cd;
-    --color-primary-hover: #4ad1d9;
-    --color-primary-soft: #123f42;
-
-    --color-gold: #e5ba4d;
-    --color-gold-hover: #f0ce6e;
-    --color-gold-soft: #3d3416;
-
-    --color-accent: #22c3cd;
-    --color-accent-hover: #4ad1d9;
-    --color-accent-soft: #123f42;
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
-    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.6);
-  }
-}
+/* El sitio es claro y limpio por decisión de marca: se retira el modo oscuro
+   automático para mantener una paleta fresca y consistente en toda la tienda. */
 
 /* ============================================================
    CARRITO — botón, contador y drawer (islands React)
