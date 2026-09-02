@@ -9,6 +9,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
+    "migrate": "node --env-file=.env scripts/migrate.mjs",
     "astro": "astro",
     "product": "node scripts/products.mjs",
     "product:list": "node scripts/products.mjs list",
@@ -28,6 +29,7 @@
     "@astrojs/vercel": "^11.0.8",
     "@medusajs/js-sdk": "^2.19.0",
     "@nanostores/react": "^1.1.0",
+    "@neondatabase/serverless": "^1.1.0",
     "astro": "^7.2.9",
     "gsap": "^3.15.0",
     "nanostores": "^1.5.2",
@@ -36,6 +38,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
+    "@types/node": "^26.4.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
     "agent-browser": "^0.35.1",

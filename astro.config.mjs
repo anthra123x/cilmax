@@ -5,9 +5,9 @@ import react from '@astrojs/react';
 
 // https://astro.build/config
 export default defineConfig({
-  // Astro 7: `static` (default) prerenderiza todo. Con el adapter de Vercel,
-  // las rutas con `export const revalidate` obtienen ISR: el catálogo y las
-  // vistas de producto se regeneran en segundo plano sin bajar el HTML.
+  // Astro 7: `static` (default) prerenderiza todo por defecto. Las rutas con
+  // `export const prerender = false` en `/api/*` se convierten en funciones
+  // serverless (backend Neon); el resto sigue siendo SSG + ISR con `revalidate`.
   adapter: vercel({
     imageService: true,
     maxDuration: 60,
