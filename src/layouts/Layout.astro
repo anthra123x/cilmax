@@ -8,7 +8,8 @@ import Footer from '../components/Footer.astro';
 import BottomNav from '../components/BottomNav.astro';
 import CartDrawer from '../components/cart/CartDrawer.tsx';
 import '../styles/global.css';
-import { paletteStyle } from '../lib/palette';
+import { buildPalette } from '../lib/palette';
+import { getStoreTheme } from '../lib/medusa';
 
 interface Props {
   title?: string;
@@ -19,6 +20,11 @@ const {
   title = 'CilMax — Tu tienda online',
   description = 'Tienda online CilMax: productos de calidad con envío rápido y atención cercana.',
 } = Astro.props;
+
+const theme = await getStoreTheme();
+const paletteStyle = Object.entries(buildPalette(theme.primaryColor, theme.goldColor))
+  .map(([k, v]) => `${k}:${v};`)
+  .join('');
 ---
 
 <!doctype html>

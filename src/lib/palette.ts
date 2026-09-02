@@ -1,8 +1,8 @@
-// Paleta de marca derivada desde src/data/site.json (editado desde el panel
-// Keystatic en /keystatic). En global.css los tokens de :root sirven de
-// fallback; aquí se calculan las variantes (hover/soft/acentos) a partir de
-// los dos colores base y se inyectan como style inline en <html> desde
-// Layout.astro para que ganen a :root.
+// Paleta de marca derivada desde los colores base (primary y gold). En
+// global.css los tokens de :root sirven de fallback; aquí se calculan las
+// variantes (hover/soft/acentos) y se inyectan como style inline en <html>
+// desde Layout.astro para que ganen a :root. Los colores base pueden venir de
+// la base de datos (panel admin) o del archivo src/data/site.json.
 
 import siteData from '../data/site.json';
 
@@ -31,25 +31,34 @@ function mix(color: string, mixWith: string, amount: number): string {
   return toHex(a.map((v, i) => v * (1 - amount) + b[i] * amount) as [number, number, number]);
 }
 
-const primary = normalizeHex(siteData?.primaryColor, FALLBACK_PRIMARY);
-const gold = normalizeHex(siteData?.goldColor, FALLBACK_GOLD);
+/** Construye el mapa de variables CSS a partir de los colores base. */
+export function buildPalette(
+  primaryColor: string | undefined,
+  goldColor: string | undefined
+): Record<string, string> {
+  const primary = normalizeHex(primaryColor, FALLBACK_PRIMARY);
+  const gold = normalizeHex(goldColor, FALLBACK_GOLD);
 
-const palette: Record<string, string> = {
-  '--color-primary': primary,
-  '--color-primary-hover': mix(primary, '#000000', 0.12),
-  '--color-primary-soft': mix(primary, '#ffffff', 0.9),
-  '--color-accent': primary,
-  '--color-accent-hover': mix(primary, '#000000', 0.12),
-  '--color-accent-soft': mix(primary, '#ffffff', 0.9),
-  '--color-whatsapp': primary,
-  '--color-whatsapp-soft': mix(primary, '#ffffff', 0.9),
-  '--color-gold': gold,
-  '--color-gold-hover': mix(gold, '#ffffff', 0.16),
-  '--color-gold-soft': mix(gold, '#ffffff', 0.88),
-  '--color-gold-bright': mix(gold, '#ffffff', 0.28),
-};
+  return {
+    '--color-primary': primary,
+    '--color-primary-hover': mix(primary, '#000000', 0.12),
+    '--color-primary-soft': mix(primary, '#ffffff', 0.9),
+    '--color-accent': primary,
+    '--color-accent-hover': mix(primary, '#000000', 0.12),
+    '--color-accent-soft': mix(primary, '#ffffff', 0.9),
+    '--color-whatsapp': primary,
+    '--color-whatsapp-soft': mix(primary, '#ffffff', 0.9),
+    '--color-gold': gold,
+    '--color-gold-hover': mix(gold, '#ffffff', 0.16),
+    '--color-gold-soft': mix(gold, '#ffffff', 0.88),
+    '--color-gold-bright': mix(gold, '#ffffff', 0.28),
+  };
+}
 
-/** Atributo `style` para el <html> del Layout: vars inline que ganan a :root. */
-export const paletteStyle = Object.entries(palette)
+/** Atributo `style` para el <html> del Layout: vars inline que ganan a :root.
+ *  Usa los colores de src/data/site.json como fallback. */
+export const paletteStyle = Object.entries(
+  buildPalette(siteData?.primaryColor, siteData?.goldColor)
+)
   .map(([k, v]) => `${k}:${v};`)
   .join('');

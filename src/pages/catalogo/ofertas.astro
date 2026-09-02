@@ -8,9 +8,6 @@ import ProductCard from '../../components/ProductCard.astro';
 import { getProducts } from '../../lib/medusa';
 import { whatsappLink } from '../../lib/site';
 
-export const prerender = true;
-export const revalidate = 300;
-
 const all = await getProducts(24);
 const products = all.filter((p) => p.featured).length ? all.filter((p) => p.featured) : all;
 ---

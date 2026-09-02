@@ -1,14 +1,11 @@
 ---
-// Página de catálogo. Se prerenderiza de forma estática con los productos
-// de Medusa (o fallback local). Con `revalidate` se habilita ISR en Vercel:
-// la página se regenera en segundo plano cada 300 s sin bajar el contenido.
+// Página de catálogo. Se renderiza en cada petición (SSR) leyendo los
+// productos desde la base de datos, para que los cambios del panel de
+// administración se reflejen de forma inmediata.
 
 import Layout from '../layouts/Layout.astro';
 import ProductCard from '../components/ProductCard.astro';
 import { getProducts } from '../lib/medusa';
-
-export const prerender = true;
-export const revalidate = 300;
 
 const products = await getProducts(24);
 ---

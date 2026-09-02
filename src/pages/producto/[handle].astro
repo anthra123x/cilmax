@@ -1,24 +1,19 @@
 ---
-// Página de detalle de producto. Se prerenderiza una página estática por
-// cada producto (getStaticPaths) con datos de Medusa o fallback local.
-// Con `revalidate` se habilita ISR en Vercel.
+// Página de detalle de producto. Se renderiza en cada petición (SSR) y el
+// producto se lee de la base de datos por su handle, de modo que los cambios
+// del panel de administración se reflejan de forma inmediata.
 
 import Layout from '../../layouts/Layout.astro';
 import ProductBuyBox from '../../components/product/ProductBuyBox.tsx';
-import { getProducts } from '../../lib/medusa';
+import { getProductByHandle } from '../../lib/medusa';
 
-export const prerender = true;
-export const revalidate = 300;
+const { handle } = Astro.params;
+const product = await getProductByHandle(handle ?? '');
 
-export async function getStaticPaths() {
-  const products = await getProducts(100);
-  return products.map((product) => ({
-    params: { handle: product.handle },
-    props: { product },
-  }));
+if (!product) {
+  return Astro.redirect('/catalogo');
 }
 
-const { product } = Astro.props;
 const image = product.images[0]?.url ?? product.thumbnail;
 ---
 
