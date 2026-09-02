@@ -82,6 +82,16 @@ const active = Astro.url.pathname;
       }
       .switch { display: inline-flex; align-items: center; gap: 10px; }
       .switch input { width: 18px; height: 18px; accent-color: var(--primary); }
+      .image-preview { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+      .thumb { position: relative; width: 84px; height: 84px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: #f4f6f8; }
+      .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .thumb.broken img { opacity: 0.25; }
+      .thumb.broken::after { content: '!' attr(title); position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--danger); text-align: center; padding: 4px; }
+      .thumb-remove {
+        position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; line-height: 18px;
+        border: 0; border-radius: 50%; background: rgba(0,0,0,.6); color: #fff; font-size: 12px; cursor: pointer;
+      }
+      .thumb-remove:hover { background: var(--danger); }
       @media (max-width: 900px) {
         .shell { grid-template-columns: 1fr; }
         .sidebar { flex-direction: row; align-items: center; gap: 12px; overflow-x: auto; }

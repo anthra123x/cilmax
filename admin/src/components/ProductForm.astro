@@ -92,6 +92,8 @@ function variantLines(p: Product | undefined): string {
           <button id="upload-btn" class="btn" type="button">Subir imágenes</button>
           <span id="upload-status" class="help" role="status" aria-live="polite"></span>
         </div>
+
+        <div id="image-preview" class="image-preview" aria-label="Vista previa de las imágenes"></div>
       </div>
 
       <div class="field">
@@ -135,8 +137,38 @@ function variantLines(p: Product | undefined): string {
     const btn = document.getElementById('upload-btn') as HTMLButtonElement | null;
     const status = document.getElementById('upload-status') as HTMLSpanElement | null;
     const images = document.getElementById('images') as HTMLTextAreaElement | null;
+    const preview = document.getElementById('image-preview') as HTMLDivElement | null;
 
-    if (fileInput && btn && status && images) {
+    function renderPreview() {
+      if (!preview || !images) return;
+      const urls = images.value.split('\n').map((s) => s.trim()).filter(Boolean);
+      preview.innerHTML = '';
+      for (const url of urls) {
+        const wrap = document.createElement('div');
+        wrap.className = 'thumb';
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = 'Imagen del producto';
+        img.loading = 'lazy';
+        img.onerror = () => { wrap.classList.add('broken'); wrap.title = 'No se pudo cargar la imagen'; };
+        const rm = document.createElement('button');
+        rm.type = 'button';
+        rm.className = 'thumb-remove';
+        rm.textContent = '✕';
+        rm.title = 'Quitar esta imagen';
+        rm.addEventListener('click', () => {
+          const rest = images.value.split('\n').map((s) => s.trim()).filter((s) => s && s !== url);
+          images.value = rest.join('\n');
+          renderPreview();
+        });
+        wrap.append(img, rm);
+        preview.append(wrap);
+      }
+    }
+
+    if (fileInput && btn && status && images && preview) {
+      renderPreview();
+
       btn.addEventListener('click', async () => {
         const files = fileInput.files;
         if (!files || files.length === 0) {
@@ -148,7 +180,11 @@ function variantLines(p: Product | undefined): string {
         btn.disabled = true;
         status.textContent = 'Subiendo…';
         try {
-          const res = await fetch('/api/images', { method: 'POST', body: form });
+          const res = await fetch('/api/images', {
+            method: 'POST',
+            body: form,
+            headers: { Origin: window.location.origin },
+          });
           const data = await res.json().catch(() => ({}));
           if (!res.ok) throw new Error(data.error || 'Error al subir');
           const existing = images.value.trim();
@@ -156,6 +192,7 @@ function variantLines(p: Product | undefined): string {
           images.value = existing ? existing + '\n' + added.join('\n') : added.join('\n');
           status.textContent = added.length > 0 ? `Se subieron ${added.length} imagen(es).` : 'No se subió ninguna imagen.';
           fileInput.value = '';
+          renderPreview();
         } catch (err) {
           status.textContent = err instanceof Error ? err.message : 'Error al subir la imagen.';
         } finally {
