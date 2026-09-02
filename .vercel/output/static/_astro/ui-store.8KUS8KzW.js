@@ -1,1 +1,0 @@
-import{c as e}from"./jsx-runtime.CHDW_qNl.js";var t=e(!1);function n(){t.set(!0)}function r(){t.set(!1)}export{t as n,n as r,r as t};
