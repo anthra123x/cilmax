@@ -49,12 +49,12 @@ export const storeInfo = {
 
 export const stores = [
   {
-    name: 'Tienda CilMax Bogotá',
-    city: 'Bogotá',
+    name: 'Tienda CilMax Bucaramanga',
+    city: 'Bucaramanga',
     address: 'Calle 10a #24-03, barrio Bolívar',
-    phone: '+57 601 745 63 20',
-    phoneRaw: '+576017456320',
-    whatsapp: '573000000000',
+    phone: '+57 315 480 4781',
+    phoneRaw: '+573154804781',
+    whatsapp: '573154804781',
     hours: storeInfo.hours,
   },
 ];
