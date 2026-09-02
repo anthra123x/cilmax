@@ -1,12 +1,10 @@
 // Capa de acceso a datos de la tienda. Orden de prioridad:
 //   1. Base de datos (Neon) — fuente de verdad gestionada por el panel admin.
-//   2. SDK de Medusa (si PUBLIC_MEDUSA_BACKEND_URL está configurado).
-//   3. Datos de ejemplo locales (src/lib/mock-data.ts) — solo para desarrollo.
+//   2. Datos de ejemplo locales (src/lib/mock-data.ts) — solo para desarrollo.
 //
 // Todas las funciones del frontend deben importar desde aquí.
 
 import { getDb } from './db';
-import { isConfigured, getStoreSdk } from './medusa-sdk';
 import { mockProducts } from './mock-data';
 
 // ---------------------------------------------------------------------------
@@ -223,23 +221,7 @@ export async function getProducts(limit = 12, offset = 0): Promise<ProductData[]
     console.warn('[medusa] No se pudo leer la BD, usando fallback.', error);
   }
 
-  // 2. Medusa si está configurado
-  try {
-    if (isConfigured()) {
-      const store = getStoreSdk();
-      const { products } = await store.store.product.list({
-        limit,
-        offset,
-        fields:
-          'id,title,handle,description,thumbnail,images.url,collection.title,variants.id,variants.title,variants.sku,variants.prices.amount,variants.prices.currency_code,variants.calculated_price.amount,variants.calculated_price.currency_code,variants.inventory_quantity',
-      });
-      return (products ?? []).map(toProductData).filter(Boolean) as ProductData[];
-    }
-  } catch (error) {
-    console.warn('[medusa] No se pudo obtener productos de Medusa.', error);
-  }
-
-  // 3. Datos de ejemplo (desarrollo)
+  // 2. Datos de ejemplo (desarrollo)
   return mockProducts.slice(offset, offset + limit).map(toProductData) as ProductData[];
 }
 
@@ -278,23 +260,6 @@ export async function getProductByHandle(handle: string): Promise<ProductData | 
     console.warn('[medusa] No se pudo leer el producto de la BD, usando fallback.', error);
   }
 
-  // 2/3. Medusa o datos de ejemplo
-  try {
-    if (isConfigured()) {
-      const store = getStoreSdk();
-      const { products } = await store.store.product.list({
-        q: '',
-        fields:
-          'id,title,handle,description,thumbnail,images.url,collection.title,variants.id,variants.title,variants.sku,variants.prices.amount,variants.prices.currency_code,variants.calculated_price.amount,variants.calculated_price.currency_code,variants.inventory_quantity',
-      });
-      const product = (products ?? []).find(
-        (p: any) => p.handle === handle || p.id === handle
-      );
-      if (product) return toProductData(product);
-    }
-  } catch (error) {
-    console.warn('[medusa] No se pudo obtener el producto de Medusa.', error);
-  }
   const mock = mockProducts.find((p) => p.handle === handle || p.id === handle);
   return mock ? toProductData(mock) : null;
 }
