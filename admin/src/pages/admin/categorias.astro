@@ -9,8 +9,19 @@ const { rows } = await db.query(
   ['cilmax'],
 );
 const categories = rows;
+const err = String(Astro.url.searchParams.get('error') ?? '');
+let errMsg = '';
+if (err === 'duplicado') errMsg = 'Ya existe una categoría con ese nombre.';
+else if (err === 'error') errMsg = 'No se pudo crear la categoría. Intenta de nuevo.';
+else if (err === 'nombre') errMsg = 'El nombre de la categoría es obligatorio.';
 ---<AdminLayout title="Categorías">
   <h1>Categorías</h1>
+
+  {errMsg && (
+    <div style="margin:0 0 16px;padding:12px 14px;border-radius:var(--radius);background:#fdecec;color:#b91c1c;font-size:14px">
+      {errMsg}
+    </div>
+  )}
 
   <div class="card">
     <h2>Nueva categoría</h2>

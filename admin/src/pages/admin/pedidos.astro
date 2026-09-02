@@ -1,0 +1,164 @@
+---
+import { getDb } from '../../lib/db';
+
+const db = getDb();
+const { rows } = await db.query(
+  `SELECT o.id, o.status, o.currency, o.subtotal_cop, o.created_at, o.items,
+          c.name AS customer_name, c.phone, c.email, c.id AS customer_id
+     FROM orders o
+     JOIN customers c ON c.id = o.customer_id
+    WHERE o.store_id = $1
+    ORDER BY o.created_at DESC
+    LIMIT 200`,
+  ['cilmax'],
+);
+const orders = rows;
+const formatMoney = (n: number) => '$' + new Intl.NumberFormat('es-CO').format(n);
+const formatDate = (d: string) =>
+  new Date(d).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' });
+const statusLabel = (s: string) => {
+  const map: Record<string, string> = { nuevo: 'Nuevo', pagado: 'Pagado', enviado: 'Enviado', completado: 'Completado', cancelado: 'Cancelado' };
+  return map[s] ?? s;
+};
+---<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pedidos · Panel CilMax</title>
+    <style is:inline>
+      :root {
+        --primary: #008a93;
+        --primary-hover: #0b6b75;
+        --primary-soft: #e3f4f5;
+        --gold: #d4af37;
+        --bg: #fafafa;
+        --surface: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: #e7e9ee;
+        --danger: #b91c1c;
+        --radius: 10px;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      .shell { display: grid; grid-template-columns: 230px 1fr; min-height: 100vh; }
+      .sidebar {
+        background: var(--primary);
+        color: #fff; padding: 20px 16px;
+        display: flex; flex-direction: column; gap: 6px;
+      }
+      .sidebar .brand { font-weight: 800; font-size: 20px; margin-bottom: 18px; }
+      .sidebar .brand span { color: var(--gold); }
+      .sidebar a {
+        color: #e8f6f7; text-decoration: none; padding: 9px 12px;
+        border-radius: 8px; font-weight: 600; font-size: 14px;
+      }
+      .sidebar a:hover { background: rgba(255,255,255,.12); }
+      .content { padding: 28px 32px; }
+      h1 { margin: 0 0 20px; font-size: 26px; }
+      .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+      .card {
+        background: var(--surface); border: 1px solid var(--border);
+        border-radius: var(--radius); padding: 18px; margin-bottom: 24px;
+      }
+      table { width: 100%; border-collapse: collapse; font-size: 14px; }
+      th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+      th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+      .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+      .badge.new { background: var(--primary-soft); color: var(--primary-hover); }
+      .badge.other { background: #f4f6f8; color: var(--muted); }
+      .price { font-weight: 700; }
+      .log { font-family: ui-monospace, monospace; font-size: 12px; color: var(--muted); white-space: pre-wrap; word-break: break-word; }
+      .empty { color: var(--muted); font-size: 14px; padding: 12px 0; }
+      .line { display:flex; justify-content:space-between; gap:16px; padding:3px 0; border-bottom:1px dashed var(--border); font-size:13px; }
+      .btn {
+        display: inline-block; border: 0; cursor: pointer; text-decoration: none;
+        background: var(--primary); color: #fff; font-weight: 700; font-size: 14px;
+        padding: 10px 16px; border-radius: 8px;
+      }
+      .btn:hover { background: var(--primary-hover); }
+      .btn.small { padding: 6px 10px; font-size: 13px; background: var(--primary-soft); color: var(--primary-hover); }
+      .btn.small:hover { background: #cfe9ea; }
+      .btn.gold { background: var(--gold); color: #1f1a04; }
+      @media (max-width: 900px) {
+        .shell { grid-template-columns: 1fr; }
+        .sidebar { flex-direction: row; align-items: center; gap: 12px; overflow-x: auto; }
+        .sidebar .brand { margin: 0 8px 0 0; }
+        .content { padding: 16px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">CilMax <span>Admin</span></div>
+        <a href="/admin">&gt; Panel principal</a>
+        <a href="/admin/producto/nuevo">&gt; Nuevo producto</a>
+        <a href="/admin/categorias">&gt; Categorías</a>
+        <a href="/admin/colores">&gt; Colores de marca</a>
+        <a href="/admin/pedidos">&gt; Pedidos</a>
+        <form method="post" action="/api/logout" style="margin-top:auto">
+          <button class="btn gold" type="submit" style="background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.3)">Cerrar sesión</button>
+        </form>
+      </aside>
+      <main class="content">
+        <div class="topbar">
+          <h1>Pedidos</h1>
+          <span class="badge new">{orders.length} registrados</span>
+        </div>
+        <div class="card">
+          {
+            orders.length ? (
+              orders.map((o) => {
+                const items: any[] = Array.isArray(o.items) ? o.items : [];
+                return (
+                  <div style="padding:12px 0;border-bottom:1px solid var(--border)">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+                      <div>
+                        <strong>{formatDate(o.created_at)}</strong>
+                        <span class="log" style="margin-left:8px">#{o.id}</span>
+                      </div>
+                      <div style="display:flex;align-items:center;gap:10px">
+                        <span class:list={['badge', o.status === 'nuevo' ? 'new' : 'other']}>{statusLabel(o.status)}</span>
+                        <span class="price">{formatMoney(Number(o.subtotal_cop))}</span>
+                      </div>
+                    </div>
+                    <div style="display:flex;gap:24px;flex-wrap:wrap;margin-top:8px;font-size:13px">
+                      <div>
+                        <span class="log">Cliente: </span><strong>{o.customer_name}</strong>
+                      </div>
+                      <div><span class="log">Tel: </span>{o.phone}</div>
+                      <div>{o.email ? <span><span class="log">Email: </span>{o.email}</span> : <span class="empty">Sin email</span>}</div>
+                    </div>
+                    <div style="margin-top:8px">
+                      {
+                        items.length ? (
+                          <div>
+                            {items.map((it: any) => (
+                              <div class="line">
+                                <span><strong>{it.title}</strong>{it.variant_title ? ` · ${it.variant_title}` : ''} <span class="log">× {it.quantity}</span></span>
+                                <span>{formatMoney(Number(it.price) * Number(it.quantity))}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : <div class="empty">Sin items.</div>
+                      }
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div class="empty">Aún no hay pedidos registrados.</div>
+            )
+          }
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

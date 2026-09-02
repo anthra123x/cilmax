@@ -1,5 +1,6 @@
 ---
 const error = (Astro.url.searchParams.get('error') ?? '') === '1';
+const blocked = (Astro.url.searchParams.get('error') ?? '') === 'blocked';
 const loggedOut = (Astro.url.searchParams.get('out') ?? '') === '1';
 ---<!DOCTYPE html>
 <html lang="es">
@@ -45,6 +46,7 @@ const loggedOut = (Astro.url.searchParams.get('out') ?? '') === '1';
       <p class="brand">CilMax <span>Admin</span></p>
       <p class="sub">Panel de administración. Acceso solo para el administrador.</p>
       {error && <p class="msg err">Contraseña incorrecta. Inténtalo de nuevo.</p>}
+      {blocked && <p class="msg err">Demasiados intentos. Espera unos minutos antes de volver a intentar.</p>}
       {loggedOut && <p class="msg ok">Sesión cerrada.</p>}
       <label for="password">Contraseña</label>
       <input id="password" name="password" type="password" autofocus autocomplete="current-password" required />

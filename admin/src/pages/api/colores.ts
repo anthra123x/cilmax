@@ -11,10 +11,17 @@ export const POST: APIRoute = async ({ request }) => {
   const gold = String(formData.get('gold_text') ?? '');
   const primaryOk = HEX.test(primary);
   const goldOk = HEX.test(gold);
+  if (!primaryOk || !goldOk) {
+    return new Response(null, {
+      status: 303,
+      headers: { Location: '/admin/colores?error=hex' },
+    });
+  }
   try {
-    await updateTheme(primaryOk ? primary : '#008a93', goldOk ? gold : '#d4af37');
+    await updateTheme(primary, gold);
   } catch (err) {
     console.error(err);
+    return new Response(null, { status: 303, headers: { Location: '/admin/colores?error=error' } });
   }
   return new Response(null, { status: 303, headers: { Location: '/admin/colores' } });
 };

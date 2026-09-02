@@ -22,6 +22,12 @@ export const POST: APIRoute = async ({ request }) => {
     await createCategory(slugify(name), name, String(formData.get('description') ?? '').trim());
   } catch (err) {
     console.error(err);
+    const msg = String((err as { message?: unknown })?.message ?? '').toLowerCase();
+    const isDuplicate = msg.includes('duplicate') || msg.includes('unique');
+    return new Response(null, {
+      status: 303,
+      headers: { Location: `/admin/categorias?error=${isDuplicate ? 'duplicado' : 'error'}` },
+    });
   }
   return new Response(null, { status: 303, headers: { Location: '/admin/categorias' } });
 };

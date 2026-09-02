@@ -3,8 +3,19 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getTheme } from '../../lib/catalog';
 
 const theme = await getTheme();
+const err = String(Astro.url.searchParams.get('error') ?? '');
+let errMsg = '';
+if (err === 'hex') errMsg = 'Formato de color inválido. Usa un código hexadecimal como #008a93.';
+else if (err === 'error') errMsg = 'No se pudieron guardar los colores. Intenta de nuevo.';
 ---<AdminLayout title="Colores de marca">
   <h1>Colores de marca</h1>
+
+  {errMsg && (
+    <div style="margin:0 0 16px;padding:12px 14px;border-radius:var(--radius);background:#fdecec;color:#b91c1c;font-size:14px">
+      {errMsg}
+    </div>
+  )}
+
   <p style="margin:0 0 16px;color:var(--muted);font-size:14px">
     Estos colores se aplican en toda la tienda al instante (verde azulado principal y dorado de acento).
   </p>

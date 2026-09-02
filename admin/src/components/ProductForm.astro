@@ -2,6 +2,8 @@
 import AdminLayout from '../layouts/AdminLayout.astro';
 import { getDb } from '../lib/db';
 
+const formError = (Astro.url.searchParams.get('error') ?? '') === '1';
+
 interface Product {
   id: string;
   title: string;
@@ -30,6 +32,11 @@ const { rows: categories } = await db.query(
 );
 ---
 <AdminLayout title={title}>
+  {formError && (
+    <div style="background:#fdecec;color:#b91c1c;border:1px solid #f5c6c6;border-radius:8px;padding:10px 14px;font-size:14px;font-weight:600;margin-bottom:16px">
+      No se pudo guardar: revisa que cada variante tenga título y precio mayor que 0, y que el stock no sea negativo.
+    </div>
+  )}
   <h1>{heading}</h1>
 
   <div class="card">
