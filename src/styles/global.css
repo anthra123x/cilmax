@@ -789,7 +789,7 @@ button {
 }
 
 /* ============================================================
-   BUSCADOR (SearchBar island) — header desktop + barra móvil
+   BUSCADOR (SearchBar island) — lupa en el header (desktop y móvil)
    ============================================================ */
 
 .header__actions .search {
@@ -930,22 +930,6 @@ button {
   /* Tipografía un poco más compacta en pantallas muy pequeñas */
   .header__logo {
     font-size: 1.3rem;
-  }
-}
-
-/* Buscador en la barra inferior móvil: se mostra arriba de la bottom-nav,
-   solo en pantallas pequeñas. Fijo para flotar sobre el contenido. */
-.bottom-search {
-  position: fixed;
-  right: var(--space-3);
-  bottom: calc(var(--bottom-nav-height) + var(--space-3));
-  z-index: 45;
-  display: none;
-}
-
-@media (max-width: 768px) {
-  .bottom-search {
-    display: block;
   }
 }
 

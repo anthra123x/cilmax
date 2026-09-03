@@ -5,7 +5,6 @@
 // El único elemento reactivo es el badge del carrito (island CartBadge).
 
 import CartBadge from './cart/CartBadge.tsx';
-import SearchBar from './search/SearchBar.tsx';
 
 const pathname = Astro.url.pathname;
 
@@ -34,9 +33,6 @@ const items = [
 ---
 
 <nav class="bottom-nav" aria-label="Navegación móvil">
-  <div class="bottom-search" aria-label="Búsqueda">
-    <SearchBar client:load />
-  </div>
   <ul class="bottom-nav__list">
     {
       items.map((item) => {
