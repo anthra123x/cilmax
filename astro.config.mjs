@@ -18,4 +18,25 @@ export default defineConfig({
   // Nombre del sitio (usado para sitemap y rutas canónicas).
   site: 'https://cilmax-tienda.vercel.app',
   trailingSlash: 'never',
+  security: {
+    csp: {
+      algorithm: 'SHA-256',
+      directives: [
+        "default-src 'self'",
+        "img-src 'self' data: blob: https:",
+        "connect-src 'self' https: wss:",
+        "font-src 'self' data:",
+        "frame-ancestors 'self'",
+        "base-uri 'self'",
+        "form-action 'self'",
+      ],
+      scriptDirective: {
+        resources: ["'self'", "'wasm-unsafe-eval'"],
+        strictDynamic: false,
+      },
+      styleDirective: {
+        resources: ["'self'", "'unsafe-inline'"],
+      },
+    },
+  },
 });

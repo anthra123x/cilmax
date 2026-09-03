@@ -161,17 +161,15 @@ const { rows: categories } = await db.query(
       </section>
 
       <button class="btn" type="submit">{productId ? 'Guardar cambios' : 'Crear producto'}</button>
-
-      {productId && (
-        <span style="margin-left:12px">
-          <form method="post" action="/api/productos" style="display:inline">
-            <input type="hidden" name="_action" value="delete" />
-            <input type="hidden" name="id" value={productId} />
-            <button class="btn danger" type="submit">Eliminar producto</button>
-          </form>
-        </span>
-      )}
     </form>
+
+    {productId && (
+      <form method="post" action="/api/productos" id="delete-form" style="margin-top:16px">
+        <input type="hidden" name="_action" value="delete" />
+        <input type="hidden" name="id" value={productId} />
+        <button class="btn danger" type="submit">Eliminar producto</button>
+      </form>
+    )}
   </div>
 
   {product && (

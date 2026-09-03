@@ -117,6 +117,22 @@ async function getUniqueHandle(base: string): Promise<string> {
 export const POST: APIRoute = async ({ request }) => {
   const formData = await request.formData();
   const action = String(formData.get('_action') ?? '');
+
+  if (action === 'delete') {
+    try {
+      const id = String(formData.get('id') ?? '');
+      if (!id) return new Response(null, { status: 303, headers: { Location: '/admin' } });
+      await deleteProduct(id);
+      return new Response(null, { status: 303, headers: { Location: '/admin' } });
+    } catch (err) {
+      console.error(err);
+      return new Response(JSON.stringify({ error: 'No se pudo eliminar el producto.' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  }
+
   const data = parseCatalogForm(formData);
 
   if ('error' in data) {
@@ -127,12 +143,6 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   try {
-    if (action === 'delete') {
-      const id = String(formData.get('id') ?? '');
-      if (!id) return new Response(null, { status: 303, headers: { Location: '/admin' } });
-      await deleteProduct(id);
-      return new Response(null, { status: 303, headers: { Location: '/admin' } });
-    }
     if (action === 'update') {
       const id = String(formData.get('id') ?? '');
       const current = await getProduct(id);
