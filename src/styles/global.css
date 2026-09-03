@@ -789,6 +789,132 @@ button {
 }
 
 /* ============================================================
+   BUSCADOR (SearchBar island) — header desktop + barra móvil
+   ============================================================ */
+
+.header__actions .search {
+  position: relative;
+}
+
+.search__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.search__toggle:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.search__panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: min(340px, calc(100vw - 24px));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  box-shadow: 0 16px 40px rgba(28, 25, 23, 0.16);
+  overflow: hidden;
+  z-index: 60;
+}
+
+.search__input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-surface-muted);
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+  outline: none;
+}
+
+.search__results {
+  display: flex;
+  flex-direction: column;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.search__result {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+  text-decoration: none;
+  transition: background-color 0.12s ease;
+}
+
+.search__result:last-child {
+  border-bottom: 0;
+}
+
+.search__result:hover {
+  background-color: var(--color-surface-muted);
+}
+
+.search__thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-muted);
+  object-fit: cover;
+  flex: none;
+}
+
+.search__thumb--empty {
+  display: block;
+  border: 1px dashed var(--color-border);
+}
+
+.search__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.search__title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search__cat {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.search__price {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
+.search__hint {
+  padding: var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* ============================================================
    AJUSTES RESPONSIVE GLOBALES — que el móvil respire
    ============================================================ */
 
@@ -804,6 +930,22 @@ button {
   /* Tipografía un poco más compacta en pantallas muy pequeñas */
   .header__logo {
     font-size: 1.3rem;
+  }
+}
+
+/* Buscador en la barra inferior móvil: se mostra arriba de la bottom-nav,
+   solo en pantallas pequeñas. Fijo para flotar sobre el contenido. */
+.bottom-search {
+  position: fixed;
+  right: var(--space-3);
+  bottom: calc(var(--bottom-nav-height) + var(--space-3));
+  z-index: 45;
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .bottom-search {
+    display: block;
   }
 }
 

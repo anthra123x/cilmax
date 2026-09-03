@@ -4,6 +4,7 @@
 // y abre el drawer. En fases posteriores se conecta búsqueda y menú móvil.
 
 import CartButton from './cart/CartButton.tsx';
+import SearchBar from './search/SearchBar.tsx';
 import { whatsappLink } from '../lib/site';
 
 const navLinks = [
@@ -33,6 +34,7 @@ const navLinks = [
     </nav>
 
     <div class="header__actions">
+      <SearchBar client:load />
       <a
         class="header__whatsapp"
         href={whatsappLink('Hola CilMax, quiero hacer un pedido.')}

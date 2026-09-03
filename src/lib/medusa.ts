@@ -37,6 +37,14 @@ export interface ProductData {
   currencyCode: string;
   /** Si el producto debe destacar en la home */
   featured: boolean;
+  /** Identificador de categoría (null si no tiene). */
+  categoryId: number | null;
+}
+
+export interface CategoryData {
+  id: number;
+  name: string;
+  slug: string;
 }
 
 export interface StoreTheme {
@@ -111,6 +119,7 @@ function toProductData(raw: any): ProductData | null {
     collectionTitle: raw.collection?.title ?? null,
     currencyCode,
     featured: raw.featured ?? false,
+    categoryId: raw.category_id ?? null,
   };
 }
 
@@ -129,6 +138,7 @@ function toProductDataFromDb(row: any, variants: ProductVariant[]): ProductData 
     collectionTitle: row.category_name ?? null,
     currencyCode: 'cop',
     featured: row.featured ?? false,
+    categoryId: row.category_id ?? null,
   };
 }
 
@@ -146,19 +156,47 @@ interface DbProductRow {
   featured: boolean;
   sort_order: number;
   category_name: string | null;
+  category_id: number | null;
 }
 
-async function productsFromDb(limit: number, offset: number): Promise<ProductData[]> {
+type ProductQueryOptions = {
+  categoryId?: number | null;
+  search?: string;
+  excludeIds?: string[];
+};
+
+async function productsFromDb(
+  limit: number,
+  offset: number,
+  options: ProductQueryOptions = {}
+): Promise<ProductData[]> {
   const db = getDb();
+  const clauses: string[] = [`p.store_id = 'cilmax'`];
+  const params: unknown[] = [];
+
+  if (options.categoryId != null) {
+    params.push(options.categoryId);
+    clauses.push(`p.category_id = $${params.length}`);
+  }
+  if (options.search) {
+    params.push(`%${options.search.toLowerCase()}%`);
+    clauses.push(`lower(p.title) like $${params.length}`);
+  }
+  if (options.excludeIds && options.excludeIds.length > 0) {
+    params.push(options.excludeIds);
+    clauses.push(`p.id != all($${params.length}::text[])`);
+  }
+
+  params.push(limit, offset);
   const { rows } = await db.query<DbProductRow>(
     `select p.id, p.title, p.handle, p.description, p.images, p.tags, p.featured, p.sort_order,
-            c.name as category_name
+            c.name as category_name, p.category_id
        from products p
        left join categories c on c.id = p.category_id
-      where p.store_id = 'cilmax'
+      where ${clauses.join(' and ')}
       order by p.sort_order asc, p.title asc
-      limit $1 offset $2`,
-    [limit, offset]
+      limit $${params.length - 1} offset $${params.length}`,
+    params
   );
 
   if (rows.length === 0) return [];
@@ -213,16 +251,70 @@ export async function getStoreTheme(): Promise<StoreTheme> {
   return (await themeFromDb()) ?? FALLBACK_THEME;
 }
 
-export async function getProducts(limit = 12, offset = 0): Promise<ProductData[]> {
+export async function getProducts(limit = 12, offset = 0, options: ProductQueryOptions = {}): Promise<ProductData[]> {
   // 1. Base de datos (fuente principal)
   try {
-    return await productsFromDb(limit, offset);
+    return await productsFromDb(limit, offset, options);
   } catch (error) {
     console.warn('[medusa] No se pudo leer la BD, usando fallback.', error);
   }
 
   // 2. Datos de ejemplo (desarrollo)
-  return mockProducts.slice(offset, offset + limit).map(toProductData) as ProductData[];
+  let mocks = mockProducts.slice(offset, offset + limit);
+  if (options.search) {
+    const q = options.search.toLowerCase();
+    mocks = mocks.filter((p) => p.title.toLowerCase().includes(q));
+  }
+  return mocks.map(toProductData) as ProductData[];
+}
+
+/** Devuelve las categorías de la tienda (para el filtro del catálogo). */
+export async function getCategories(): Promise<CategoryData[]> {
+  try {
+    const db = getDb();
+    const { rows } = await db.query<CategoryData>(
+      `select id, name, slug from categories
+        where store_id = 'cilmax'
+        order by name asc`
+    );
+    return rows;
+  } catch (error) {
+    console.warn('[medusa] No se pudo leer las categorías de la BD.', error);
+    return [];
+  }
+}
+
+/** Busca productos por nombre (para el buscador live). Usa el store cilmax. */
+export async function searchProducts(query: string, limit = 8): Promise<ProductData[]> {
+  const q = query.trim();
+  if (!q) return [];
+  try {
+    return await productsFromDb(limit, 0, { search: q });
+  } catch (error) {
+    console.warn('[medusa] No se pudo buscar en la BD, usando fallback.', error);
+  }
+  const lower = q.toLowerCase();
+  return mockProducts
+    .filter((p) => p.title.toLowerCase().includes(lower))
+    .slice(0, limit)
+    .map(toProductData) as ProductData[];
+}
+
+/** Productos de la misma categoría (sugerencias), excluyendo el producto actual. */
+export async function getRelatedProducts(
+  product: ProductData,
+  limit = 4
+): Promise<ProductData[]> {
+  if (product.categoryId == null) return [];
+  try {
+    return await productsFromDb(limit, 0, {
+      categoryId: product.categoryId,
+      excludeIds: [product.id],
+    });
+  } catch (error) {
+    console.warn('[medusa] No se pudo leer productos relacionados de la BD.', error);
+    return [];
+  }
 }
 
 export async function getProductByHandle(handle: string): Promise<ProductData | null> {
@@ -231,7 +323,7 @@ export async function getProductByHandle(handle: string): Promise<ProductData | 
     const db = getDb();
     const { rows } = await db.query<DbProductRow>(
       `select p.id, p.title, p.handle, p.description, p.images, p.tags, p.featured, p.sort_order,
-              c.name as category_name
+              c.name as category_name, p.category_id
          from products p
          left join categories c on c.id = p.category_id
         where p.store_id = 'cilmax' and p.handle = $1

@@ -6,7 +6,8 @@
 import Layout from '../../layouts/Layout.astro';
 import ProductBuyBox from '../../components/product/ProductBuyBox.tsx';
 import ProductGallery from '../../components/product/ProductGallery.tsx';
-import { getProductByHandle } from '../../lib/medusa';
+import ProductCard from '../../components/ProductCard.astro';
+import { getProductByHandle, getRelatedProducts } from '../../lib/medusa';
 import '../../styles/product-gallery.css';
 
 const { handle } = Astro.params;
@@ -17,6 +18,7 @@ if (!product) {
 }
 
 const images = product.images.length > 0 ? product.images : (product.thumbnail ? [{ url: product.thumbnail }] : []);
+const related = await getRelatedProducts(product, 4);
 ---
 
 <Layout title={`${product.title} — CilMax`}>
@@ -55,6 +57,17 @@ const images = product.images.length > 0 ? product.images : (product.thumbnail ?
       <ProductBuyBox product={product} client:load />
     </div>
   </section>
+
+  {
+    related.length > 0 && (
+      <section class="related container">
+        <h2 class="related__title">Productos relacionados</h2>
+        <div class="related__grid">
+          {related.map((p) => <ProductCard product={p} />)}
+        </div>
+      </section>
+    )
+  }
 </Layout>
 
 <style>
@@ -124,6 +137,35 @@ const images = product.images.length > 0 ? product.images : (product.thumbnail ?
 
   .product-detail .buy-box {
     margin-top: var(--space-4);
+  }
+
+  .related {
+    padding-block: var(--space-4) var(--space-16);
+  }
+
+  .related__title {
+    font-size: var(--font-size-xl);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin-bottom: var(--space-4);
+  }
+
+  .related__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-4);
+  }
+
+  @media (max-width: 900px) {
+    .related__grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (max-width: 720px) {
+    .related__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 
   @media (max-width: 820px) {

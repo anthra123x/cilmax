@@ -5,9 +5,15 @@
 
 import Layout from '../layouts/Layout.astro';
 import ProductCard from '../components/ProductCard.astro';
-import { getProducts } from '../lib/medusa';
+import { getProducts, getCategories } from '../lib/medusa';
 
-const products = await getProducts(24);
+const catRaw = Astro.url.searchParams.get('categoria');
+const categoryId = catRaw && /^\d+$/.test(catRaw) ? Number(catRaw) : null;
+const [products, categories] = await Promise.all([
+  getProducts(24, 0, { categoryId }),
+  getCategories(),
+]);
+const activeCategory = categories.find((c) => c.id === categoryId) ?? null;
 ---
 
 <Layout title="Catálogo — CilMax">
@@ -24,7 +30,31 @@ const products = await getProducts(24);
   <section class="catalog" aria-labelledby="catalog-title">
     <div class="container">
       <div class="catalog__header">
-        <h2 id="catalog-title">{products.length} productos</h2>
+        <h2 id="catalog-title">
+          {activeCategory ? activeCategory.name : `${products.length} productos`}
+        </h2>
+      </div>
+
+      <div class="catalog__chips" role="group" aria-label="Filtrar por categoría">
+        <a
+          class={`catalog__chip${categoryId === null ? ' catalog__chip--active' : ''}`}
+          href="/catalogo"
+          aria-current={categoryId === null ? 'page' : undefined}
+        >
+          Todos
+        </a>
+        {categories.map((c) => {
+          const active = c.id === categoryId;
+          return (
+            <a
+              class={`catalog__chip${active ? ' catalog__chip--active' : ''}`}
+              href={`/catalogo?categoria=${c.id}`}
+              aria-current={active ? 'page' : undefined}
+            >
+              {c.name}
+            </a>
+          );
+        })}
       </div>
 
       {
@@ -33,7 +63,11 @@ const products = await getProducts(24);
             {products.map((product) => <ProductCard product={product} />)}
           </div>
         ) : (
-          <p class="catalog__empty">No hay productos disponibles por ahora.</p>
+          <p class="catalog__empty">
+            {activeCategory
+              ? 'No hay productos en esta categoría por ahora.'
+              : 'No hay productos disponibles por ahora.'}
+          </p>
         )
       }
     </div>
@@ -65,6 +99,38 @@ const products = await getProducts(24);
 
   .catalog__header {
     margin-bottom: var(--space-6);
+  }
+
+  .catalog__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-6);
+  }
+
+  .catalog__chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    background-color: var(--color-surface);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    text-decoration: none;
+    transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+  }
+
+  .catalog__chip:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  .catalog__chip--active {
+    border-color: var(--color-primary);
+    background-color: var(--color-primary);
+    color: #ffffff;
   }
 
   .catalog__header h2 {
