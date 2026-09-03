@@ -1,11 +1,9 @@
 ---
 // Página de contacto de CilMax (tienda colombiana).
-// Muestra canales de atención y un formulario de contacto. En fase local el
-// formulario abre el cliente de correo con los datos precargados (mailto);
-// cuando haya backend se sustituye por un envío real.
+// Muestra canales de atención y un formulario de contacto. El formulario envía
+// el mensaje a /api/contacto, que lo guarda para verse en el panel de admin.
 
 import Layout from '../layouts/Layout.astro';
-import { whatsappLink } from '../lib/site';
 
 const contactChannels = [
   {
@@ -64,18 +62,6 @@ const contactChannels = [
             </div>
           ))
         }
-
-        <a
-          class="contact-whatsapp btn btn--secondary"
-          href={whatsappLink('Hola CilMax, quiero más información.')}
-          target="_blank"
-          rel="noopener"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm0 18.15a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24 2.2 0 4.27.86 5.82 2.42a8.18 8.18 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.24 8.23Zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.17.24-.64.8-.78.97-.14.16-.29.18-.54.06-.25-.13-1.05-.39-2-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.51.11-.11.25-.29.37-.43.12-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.13-.56-1.35-.77-1.84-.2-.49-.4-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.22.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.07-.1-.23-.16-.48-.29Z" />
-          </svg>
-          Escríbenos por WhatsApp
-        </a>
       </div>
 
       <form class="contact-form" id="contact-form">
@@ -110,24 +96,40 @@ const contactChannels = [
 <script>
   const form = document.getElementById('contact-form') as HTMLFormElement | null;
   const status = document.querySelector('.contact-form__status') as HTMLElement | null;
+  const submitBtn = document.querySelector('.contact-form__submit') as HTMLButtonElement | null;
 
-  form?.addEventListener('submit', (e) => {
+  form?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!form || !status) return;
+    if (!form || !status || !submitBtn) return;
+
     const data = new FormData(form);
-    const nombre = data.get('nombre') as string;
-    const correo = data.get('correo') as string;
-    const asunto = (data.get('asunto') as string) || 'Consulta desde la web';
-    const mensaje = data.get('mensaje') as string;
+    const nombre = String(data.get('nombre') ?? '').trim();
+    const correo = String(data.get('correo') ?? '').trim();
+    const asunto = String(data.get('asunto') ?? '').trim();
+    const mensaje = String(data.get('mensaje') ?? '').trim();
 
-    const subject = encodeURIComponent(`[CilMax] ${asunto}`);
-    const body = encodeURIComponent(
-      `Hola CilMax,\n\n${mensaje}\n\n— ${nombre} (${correo})`
-    );
-    window.location.href = `mailto:hola@cilmax.co?subject=${subject}&body=${body}`;
+    status.textContent = 'Enviando…';
+    status.style.color = 'var(--color-text-muted)';
+    submitBtn.disabled = true;
 
-    status.textContent = '¡Gracias! Se abrirá tu correo para enviar el mensaje.';
-    form.reset();
+    try {
+      const res = await fetch('/api/contacto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Origin: window.location.origin },
+        body: JSON.stringify({ nombre, correo, asunto, mensaje }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(payload?.error || 'No se pudo enviar el mensaje.');
+
+      status.textContent = '¡Gracias! Tu mensaje fue enviado correctamente.';
+      status.style.color = 'var(--color-primary)';
+      form.reset();
+    } catch (err) {
+      status.textContent = err instanceof Error ? err.message : 'No se pudo enviar el mensaje.';
+      status.style.color = '#b91c1c';
+    } finally {
+      submitBtn.disabled = false;
+    }
   });
 </script>
 
@@ -197,11 +199,6 @@ const contactChannels = [
   .channel__line {
     color: var(--color-text-muted);
     font-size: var(--font-size-sm);
-  }
-
-  .contact-whatsapp {
-    justify-self: start;
-    margin-top: var(--space-1);
   }
 
   .contact-form {

@@ -1,0 +1,87 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getDb } from '../../lib/db';
+
+const db = getDb();
+const { rows } = await db.query(
+  `SELECT id, nombre, correo, asunto, mensaje, leido, created_at
+   FROM contact_messages
+   WHERE store_id = $1
+   ORDER BY created_at DESC
+   LIMIT 200`,
+  ['cilmax'],
+);
+const mensajes = rows;
+
+const err = String(Astro.url.searchParams.get('error') ?? '');
+const errMsg =
+  err === 'borrado'
+    ? 'No se pudo borrar el mensaje. Intenta de nuevo.'
+    : '';
+const ok = String(Astro.url.searchParams.get('ok') ?? '');
+const okMsg = ok === 'borrado' ? 'Mensaje eliminado.' : '';
+
+const formatDate = (d: string) =>
+  new Date(d).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' });
+const truncate = (s: string, n = 140) =>
+  s.length > n ? s.slice(0, n) + '…' : s;
+---
+<AdminLayout title="Mensajes de contacto">
+  <h1>Mensajes de contacto</h1>
+
+  {errMsg && (
+    <div style="margin:0 0 16px;padding:12px 14px;border-radius:var(--radius);background:#fdecec;color:#b91c1c;font-size:14px">{errMsg}</div>
+  )}
+  {okMsg && (
+    <div style="margin:0 0 16px;padding:12px 14px;border-radius:var(--radius);background:#e3f4f5;color:#0b6b75;font-size:14px">{okMsg}</div>
+  )}
+
+  <div class="topbar" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <span class="count">{mensajes.length} recibidos</span>
+  </div>
+
+  <div class="card">
+    {
+      mensajes.length ? (
+        mensajes.map((m) => {
+          const d = new Date(m.created_at);
+          const casi = Date.now() - d.getTime() < 1000 * 60 * 60 * 24;
+          return (
+            <article style="padding:14px 0;border-bottom:1px solid var(--border)">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <strong>{m.nombre}</strong>
+                  <span class="log" style="font-size:12px">◦ {m.correo}</span>
+                  <span class:list={['badge', m.leido ? 'other' : 'new']}>{m.leido ? 'Leído' : 'Nuevo'}</span>
+                </div>
+                <time class="log" title={d.toISOString()}>{casi ? 'Hoy' : formatDate(m.created_at)}</time>
+              </div>
+              <p class="asunto"><strong>{m.asunto}</strong></p>
+              <p class="cuerpo">{truncate(m.mensaje)}</p>
+            </article>
+          );
+        })
+      ) : (
+        <div class="empty">Aún no hay mensajes de contacto.</div>
+      )
+    }
+  </div>
+</AdminLayout>
+
+<style is:global>
+  .count {
+    font-size: 13px; font-weight: 800; color: var(--muted);
+    background: var(--primary-soft); color: var(--primary-hover);
+    padding: 4px 12px; border-radius: 999px;
+  }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+  .badge.new { background: var(--primary-soft); color: var(--primary-hover); }
+  .badge.other { background: #f4f6f8; color: var(--muted); }
+  .asunto { margin: 6px 0 4px; font-size: 15px; }
+  .cuerpo { margin: 0; font-size: 14px; color: var(--muted); }
+  .log {
+    font-family: ui-monospace, monospace; font-size: 12px; color: var(--muted);
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .empty { color: var(--muted); font-size: 14px; padding: 12px 0; }
+</style>

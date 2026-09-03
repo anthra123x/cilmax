@@ -112,11 +112,12 @@ const active = Astro.url.pathname;
     <div class="shell">
       <aside class="sidebar">
         <div class="brand">CilMax <span>Admin</span></div>
-        <a href="/admin" class:list={{ active: active === '/admin' || active.startsWith('/admin') && !active.includes('/producto/') && !active.includes('/categorias') && !active.includes('/colores') && !active.includes('/pedidos') }}>&gt; Panel principal</a>
+        <a href="/admin" class:list={{ active: active === '/admin' || active.startsWith('/admin') && !active.includes('/producto/') && !active.includes('/categorias') && !active.includes('/colores') && !active.includes('/pedidos') && !active.includes('/mensajes') }}>&gt; Panel principal</a>
         <a href="/admin/producto/nuevo" class:list={{ active: active.startsWith('/admin/producto/nuevo') }}>&gt; Nuevo producto</a>
         <a href="/admin/categorias" class:list={{ active: active.startsWith('/admin/categorias') }}>&gt; Categorías</a>
         <a href="/admin/colores" class:list={{ active: active.startsWith('/admin/colores') }}>&gt; Colores de marca</a>
         <a href="/admin/pedidos" class:list={{ active: active.startsWith('/admin/pedidos') }}>&gt; Pedidos</a>
+        <a href="/admin/mensajes" class:list={{ active: active.startsWith('/admin/mensajes') }}>&gt; Mensajes de contacto</a>
         <div style="flex:1"></div>
         <form method="post" action="/api/logout" style="margin-top:auto">
           <button type="submit">Cerrar sesión</button>
