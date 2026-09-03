@@ -7,6 +7,7 @@ import Layout from '../../layouts/Layout.astro';
 import ProductBuyBox from '../../components/product/ProductBuyBox.tsx';
 import ProductGallery from '../../components/product/ProductGallery.tsx';
 import { getProductByHandle } from '../../lib/medusa';
+import '../../styles/product-gallery.css';
 
 const { handle } = Astro.params;
 const product = await getProductByHandle(handle ?? '');
