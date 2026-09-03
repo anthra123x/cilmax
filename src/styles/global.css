@@ -678,6 +678,13 @@ button {
     padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
   }
 
+  /* En móvil, en el header solo queda la lupa de búsqueda. El carrito vive en la
+     barra inferior (BottomNav), por eso se oculta aquí (regla global porque el
+     botón del carrito es un island cuyo scope CSS no lo matchearía). */
+  .header__actions .cart-button {
+    display: none;
+  }
+
   main,
   .cart-page {
     /* Ningún contenido fijo adicional; el padding del body ya reserva hueco. */

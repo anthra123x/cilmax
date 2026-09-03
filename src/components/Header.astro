@@ -176,15 +176,14 @@ const navLinks = [
   /* Tablet y móvil: colapsar la navegación.
      En <= 768px el nav horizontal se oculta porque la navegación vive en la
      barra inferior (BottomNav). La lupa de búsqueda se mantiene arriba, en el
-     header; el botón de WhatsApp y el carrito se ocultan (carrito en la barra
-     inferior, WhatsApp detrás de la lupa). */
+     header; el botón de WhatsApp se oculta. El carrito del header también se
+     oculta en móvil (regla global en global.css, porque es un island). */
   @media (max-width: 768px) {
     .header__nav {
       display: none;
     }
 
-    .header__whatsapp,
-    .header__actions .cart-button {
+    .header__whatsapp {
       display: none;
     }
   }
