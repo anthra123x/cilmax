@@ -48,6 +48,9 @@
 }
 .gallery__nav--prev { left: var(--space-3, 16px); }
 .gallery__nav--next { right: var(--space-3, 16px); }
+@media (max-width: 820px) {
+  .gallery__nav { display: none; }
+}
 .gallery__dots {
   position: absolute;
   bottom: var(--space-3, 16px);
