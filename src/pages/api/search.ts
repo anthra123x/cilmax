@@ -29,6 +29,7 @@ export const GET: APIRoute = async ({ url }) => {
       thumbnail: p.thumbnail,
       priceFormatted: formatPrice(amount, p.currencyCode),
       collectionTitle: p.collectionTitle,
+      rating: p.rating,
     };
   });
 

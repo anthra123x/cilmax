@@ -1,0 +1,125 @@
+---
+// Panel de reseñas: vista agrupada por producto con promedio, conteo y la
+// lista de opiniones. Permite eliminar cualquier reseña.
+
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getDb } from '../../lib/db';
+
+const db = getDb();
+const { rows } = await db.query(
+  `SELECT pr.id AS review_id, pr.product_id, pr.nombre, pr.correo, pr.calificacion,
+          pr.comentario, pr.created_at, p.title AS product_title
+     FROM product_reviews pr
+     LEFT JOIN products p ON p.id = pr.product_id
+    WHERE pr.store_id = $1
+    ORDER BY pr.created_at DESC
+    LIMIT 300`,
+  ['cilmax'],
+);
+
+type ReviewRow = {
+  review_id: string;
+  product_id: string;
+  nombre: string;
+  correo: string | null;
+  calificacion: number;
+  comentario: string;
+  created_at: string;
+  product_title: string | null;
+};
+
+const groups = new Map<string, { productId: string; title: string; reviews: ReviewRow[] }>();
+for (const r of rows as ReviewRow[]) {
+  const key = r.product_id;
+  if (!groups.has(key)) {
+    groups.set(key, { productId: key, title: r.product_title ?? 'Producto', reviews: [] });
+  }
+  groups.get(key)!.reviews.push(r);
+}
+const productos = [...groups.values()].map((g) => {
+  const total = g.reviews.reduce((acc, r) => acc + Number(r.calificacion), 0);
+  const avg = total / g.reviews.length;
+  return { ...g, avg, catUrl: `/producto/${g.productId}` };
+});
+
+const err = String(Astro.url.searchParams.get('error') ?? '');
+const errMsg = err === 'borrado' ? 'No se pudo borrar la reseña. Intenta de nuevo.' : '';
+const ok = String(Astro.url.searchParams.get('ok') ?? '');
+const okMsg = ok === 'borrado' ? 'Reseña eliminada.' : '';
+
+const formatDate = (d: string) =>
+  new Date(d).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' });
+const stars = (n: number) =>
+  [1, 2, 3, 4, 5].map((s) => (s <= Math.round(n) ? '★' : '☆')).join('');
+const truncate = (s: string, n = 180) => (s.length > n ? s.slice(0, n) + '…' : s);
+---
+<AdminLayout title="Reseñas de productos">
+  <h1>Reseñas de productos</h1>
+
+  {errMsg && (
+    <div style="margin:0 0 16px;padding:12px 14px;border-radius:var(--radius);background:#fdecec;color:#b91c1c;font-size:14px">{errMsg}</div>
+  )}
+  {okMsg && (
+    <div style="margin:0 0 16px;padding:12px 14px;border-radius:var(--radius);background:#e3f4f5;color:#0b6b75;font-size:14px">{okMsg}</div>
+  )}
+
+  <div class="topbar" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <span class="count">{rows.length} reseñas · {productos.length} producto(s)</span>
+  </div>
+
+  {
+    productos.length ? (
+      productos.map((g) => (
+        <div class="card" style="margin-bottom:24px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+            <h2 style="margin:0;font-size:17px">{g.title}</h2>
+            <span class="avg" title={`Promedio: ${g.avg.toFixed(1)} / 5`}>
+              <span class="gold">{stars(g.avg)}</span> {g.avg.toFixed(1)} · {g.reviews.length} reseña(s)
+            </span>
+          </div>
+          {
+            g.reviews.map((r) => (
+              <article style="padding:14px 0;border-bottom:1px solid var(--border)">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <strong>{r.nombre}</strong>
+                    <span class="log" style="font-size:12px">◦ {r.correo ?? 'sin correo'}</span>
+                    <span class="stars" title={`${Number(r.calificacion)} / 5`}>{stars(Number(r.calificacion))}</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <time class="log" title={new Date(r.created_at).toISOString()}>{formatDate(r.created_at)}</time>
+                    <form method="post" action="/api/resenas">
+                      <input type="hidden" name="_action" value="delete" />
+                      <input type="hidden" name="id" value={r.review_id} />
+                      <button class="btn danger" type="submit">Eliminar</button>
+                    </form>
+                  </div>
+                </div>
+                <p class="cuerpo">{truncate(r.comentario)}</p>
+              </article>
+            ))
+          }
+        </div>
+      ))
+    ) : (
+      <div class="card"><div class="empty">Aún no hay reseñas de productos.</div></div>
+    )
+  }
+</AdminLayout>
+
+<style is:global>
+  .count {
+    font-size: 13px; font-weight: 800;
+    background: var(--primary-soft); color: var(--primary-hover);
+    padding: 4px 12px; border-radius: 999px;
+  }
+  .avg { font-size: 13px; font-weight: 600; color: var(--muted); }
+  .gold { color: var(--gold); }
+  .stars { color: var(--gold); font-size: 13px; letter-spacing: 1px; }
+  .cuerpo { margin: 8px 0 0; font-size: 14px; color: var(--text); line-height: 1.5; }
+  .log {
+    font-family: ui-monospace, monospace; font-size: 12px; color: var(--muted);
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .empty { color: var(--muted); font-size: 14px; padding: 6px 0; }
+</style>

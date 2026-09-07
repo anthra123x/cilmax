@@ -7,6 +7,7 @@ type SearchResult = {
   thumbnail: string | null;
   priceFormatted: string;
   collectionTitle: string | null;
+  rating: { avg: number; count: number } | null;
 };
 
 export default function SearchBar() {
@@ -126,6 +127,16 @@ export default function SearchBar() {
                     <span className="search__title">{r.title}</span>
                     {r.collectionTitle && (
                       <span className="search__cat">{r.collectionTitle}</span>
+                    )}
+                    {r.rating && r.rating.count > 0 && (
+                      <span className="search__rating" aria-label={`${r.rating.avg} de 5 en ${r.rating.count} opiniones`}>
+                        <span className="search__stars">
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <span key={s} className={s <= Math.round(r.rating!.avg) ? 'star star--on' : 'star'}>★</span>
+                          ))}
+                        </span>
+                        <span className="search__count">{r.rating.count}</span>
+                      </span>
                     )}
                   </span>
                   <span className="search__price">{r.priceFormatted}</span>

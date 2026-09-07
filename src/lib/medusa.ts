@@ -39,12 +39,30 @@ export interface ProductData {
   featured: boolean;
   /** Identificador de categoría (null si no tiene). */
   categoryId: number | null;
+  /** Calificación promedio de opiniones (null si aún no hay). */
+  rating: ProductRating | null;
 }
 
 export interface CategoryData {
   id: number;
   name: string;
   slug: string;
+}
+
+export interface ProductRating {
+  /** Calificación promedio (1 decimal). */
+  avg: number;
+  count: number;
+}
+
+export interface ProductReview {
+  id: string;
+  productId: string;
+  nombre: string;
+  correo: string | null;
+  calificacion: number;
+  comentario: string;
+  createdAt: string;
 }
 
 export interface StoreTheme {
@@ -120,6 +138,7 @@ function toProductData(raw: any): ProductData | null {
     currencyCode,
     featured: raw.featured ?? false,
     categoryId: raw.category_id ?? null,
+    rating: null,
   };
 }
 
@@ -139,6 +158,7 @@ function toProductDataFromDb(row: any, variants: ProductVariant[]): ProductData 
     currencyCode: 'cop',
     featured: row.featured ?? false,
     categoryId: row.category_id ?? null,
+    rating: null,
   };
 }
 
@@ -254,7 +274,7 @@ export async function getStoreTheme(): Promise<StoreTheme> {
 export async function getProducts(limit = 12, offset = 0, options: ProductQueryOptions = {}): Promise<ProductData[]> {
   // 1. Base de datos (fuente principal)
   try {
-    return await productsFromDb(limit, offset, options);
+    return await productsWithRatings(limit, offset, options);
   } catch (error) {
     console.warn('[medusa] No se pudo leer la BD, usando fallback.', error);
   }
@@ -289,7 +309,7 @@ export async function searchProducts(query: string, limit = 8): Promise<ProductD
   const q = query.trim();
   if (!q) return [];
   try {
-    return await productsFromDb(limit, 0, { search: q });
+    return await productsWithRatings(limit, 0, { search: q });
   } catch (error) {
     console.warn('[medusa] No se pudo buscar en la BD, usando fallback.', error);
   }
@@ -307,7 +327,7 @@ export async function getRelatedProducts(
 ): Promise<ProductData[]> {
   if (product.categoryId == null) return [];
   try {
-    return await productsFromDb(limit, 0, {
+    return await productsWithRatings(limit, 0, {
       categoryId: product.categoryId,
       excludeIds: [product.id],
     });
@@ -346,7 +366,8 @@ export async function getProductByHandle(handle: string): Promise<ProductData | 
         currencyCode: v.currency,
         inventoryQuantity: v.inventory_quantity ?? 0,
       }));
-      return toProductDataFromDb(rows[0], variants);
+      const single = await attachRatings([toProductDataFromDb(rows[0], variants)]);
+      return single[0] ?? null;
     }
   } catch (error) {
     console.warn('[medusa] No se pudo leer el producto de la BD, usando fallback.', error);
@@ -354,4 +375,70 @@ export async function getProductByHandle(handle: string): Promise<ProductData | 
 
   const mock = mockProducts.find((p) => p.handle === handle || p.id === handle);
   return mock ? toProductData(mock) : null;
+}
+
+// ---------------------------------------------------------------------------
+// Opiniones y calificaciones (product_reviews)
+// ---------------------------------------------------------------------------
+
+/** Adjunta la calificación promedio y el número de opiniones a cada producto (una sola query agregada). */
+async function attachRatings(products: ProductData[]): Promise<ProductData[]> {
+  if (products.length === 0) return products;
+  const db = getDb();
+  try {
+    const ids = products.map((p) => p.id);
+    const { rows } = await db.query<{ product_id: string; avg: string; count: string }>(
+      `select product_id,
+              round(avg(calificacion), 1) as avg,
+              count(*) as count
+         from product_reviews
+        where store_id = $1 and product_id = any($2::text[])
+        group by product_id`,
+      ['cilmax', ids]
+    );
+    const byId = new Map<string, ProductRating>();
+    for (const r of rows) {
+      byId.set(r.product_id, { avg: Number(r.avg), count: Number(r.count) });
+    }
+    return products.map((p) => (byId.has(p.id) ? { ...p, rating: byId.get(p.id)! } : p));
+  } catch (error) {
+    console.warn('[medusa] No se pudo leer las calificaciones.', error);
+    return products;
+  }
+}
+
+/** Adjunta ratings a los productos devueltos por productosFromDb. */
+async function productsWithRatings(
+  limit: number,
+  offset: number,
+  options: ProductQueryOptions = {}
+): Promise<ProductData[]> {
+  return attachRatings(await productsFromDb(limit, offset, options));
+}
+
+/** Devuelve las opiniones SSR de un producto (más recientes primero). */
+export async function getProductReviews(productId: string, limit = 50): Promise<ProductReview[]> {
+  try {
+    const db = getDb();
+    const { rows } = await db.query(
+      `select id, product_id, nombre, correo, calificacion, comentario, created_at
+         from product_reviews
+        where store_id = $1 and product_id = $2
+        order by created_at desc
+        limit $3`,
+      ['cilmax', productId, limit]
+    );
+    return rows.map((r) => ({
+      id: r.id,
+      productId: r.product_id,
+      nombre: r.nombre,
+      correo: r.correo,
+      calificacion: Number(r.calificacion),
+      comentario: r.comentario,
+      createdAt: r.created_at instanceof Date ? r.created_at.toISOString() : String(r.created_at),
+    }));
+  } catch (error) {
+    console.warn('[medusa] No se pudieron leer las opiniones.', error);
+    return [];
+  }
 }

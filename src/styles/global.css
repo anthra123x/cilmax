@@ -908,6 +908,32 @@ button {
   color: var(--color-text-muted);
 }
 
+.search__rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.search__stars {
+  display: inline-flex;
+  gap: 1px;
+  line-height: 1;
+}
+
+.search__stars .star {
+  color: var(--color-border);
+}
+
+.search__stars .star--on {
+  color: var(--color-gold);
+}
+
+.search__count {
+  font-weight: 600;
+}
+
 .search__price {
   font-size: var(--font-size-sm);
   font-weight: 700;
