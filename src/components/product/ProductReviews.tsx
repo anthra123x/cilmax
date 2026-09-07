@@ -2,7 +2,7 @@
 // inicial de reseñas y el promedio; al enviar el formulario hace POST a
 // /api/reviews y actualiza la lista y el promedio sin recargar la página.
 
-import { useState, type FormEvent } from 'react';
+import { useState, useMemo, type FormEvent } from 'react';
 
 interface Review {
   id: string;
@@ -33,9 +33,43 @@ function Stars({ value, size = 16 }: { value: number; size?: number }) {
       style={{ '--stars-size': `${size}px` } as React.CSSProperties}
     >
       {STARS.map((s) => (
-        <span key={s} className={s <= Math.round(value) ? 'star star--on' : 'star'}>★</span>
+        <span key={s} className={s <= Math.round(value) ? 'star star--on' : 'star'}>&#9733;</span>
       ))}
     </span>
+  );
+}
+
+function Initial({ name }: { name: string }) {
+  const letter = (name || '?').trim().charAt(0).toUpperCase();
+  return <span className="review__avatar">{letter}</span>;
+}
+
+function Histogram({ reviews }: { reviews: Review[] }) {
+  const dist = useMemo(() => {
+    const counts = [0, 0, 0, 0, 0];
+    for (const r of reviews) {
+      if (r.calificacion >= 1 && r.calificacion <= 5) counts[r.calificacion - 1]++;
+    }
+    const max = Math.max(...counts, 1);
+    return [5, 4, 3, 2, 1].map((star) => ({
+      star,
+      count: counts[star - 1],
+      pct: (counts[star - 1] / max) * 100,
+    }));
+  }, [reviews]);
+
+  return (
+    <div className="histogram">
+      {dist.map((d) => (
+        <div className="histogram__row" key={d.star}>
+          <span className="histogram__label">{d.star}&#9733;</span>
+          <div className="histogram__track">
+            <div className="histogram__fill" style={{ width: `${d.pct}%` }} />
+          </div>
+          <span className="histogram__count">{d.count}</span>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -113,32 +147,40 @@ export default function ProductReviews({ productId, productTitle, reviews: initi
 
   return (
     <section className="reviews">
-      <div className="reviews__summary">
-        <div className="reviews__score">
-          <span className="reviews__avg">{avg != null ? avg.toLocaleString('es-CO') : '—'}</span>
-          {avg != null && <Stars value={avg} size={18} />}
-          <span className="reviews__count">
-            {count === 0 ? 'Sin opiniones' : `${count} ${count === 1 ? 'opinión' : 'opiniones'}`}
-          </span>
-        </div>
-      </div>
+      <h2 className="reviews__title">Opiniones de clientes</h2>
 
-      <div className="reviews__list">
-        {reviews.length === 0 ? (
-          <p className="reviews__empty">Aún no hay opiniones. Sé el primero en calificar {productTitle}.</p>
-        ) : (
-          reviews.map((r) => (
+      {count > 0 ? (
+        <div className="reviews__summary">
+          <div className="reviews__score">
+            <span className="reviews__avg">{avg != null ? avg.toLocaleString('es-CO') : '—'}</span>
+            {avg != null && <Stars value={avg} size={20} />}
+            <span className="reviews__count">
+              {count} {count === 1 ? 'opinión' : 'opiniones'}
+            </span>
+          </div>
+          <Histogram reviews={reviews} />
+        </div>
+      ) : (
+        <p className="reviews__empty">Aún no hay opiniones. Sé el primero en calificar.</p>
+      )}
+
+      {reviews.length > 0 && (
+        <div className="reviews__list">
+          {reviews.map((r) => (
             <article className="review" key={r.id}>
               <div className="review__head">
-                <span className="review__name">{r.nombre}</span>
-                <Stars value={r.calificacion} size={14} />
+                <Initial name={r.nombre} />
+                <div className="review__meta">
+                  <span className="review__name">{r.nombre}</span>
+                  <Stars value={r.calificacion} size={13} />
+                </div>
+                <time className="review__date">{formatDate(r.createdAt)}</time>
               </div>
               <p className="review__body">{r.comentario}</p>
-              <time className="review__date">{formatDate(r.createdAt)}</time>
             </article>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
 
       {!sent ? (
         <form className="review-form" onSubmit={onSubmit}>
@@ -154,16 +196,26 @@ export default function ProductReviews({ productId, productTitle, reviews: initi
                 className={s <= stars ? 'star star--on' : 'star'}
                 onClick={() => setStars(s)}
               >
-                ★
+                &#9733;
               </button>
             ))}
+            <span className="review-form__stars-label">{stars} de 5</span>
           </div>
           <div className="review-form__fields">
             <div className="review-form__row">
-              <input name="nombre" type="text" placeholder="Tu nombre *" required maxLength={120} />
-              <input name="correo" type="email" placeholder="Tu correo (opcional)" maxLength={254} />
+              <label className="field">
+                <span className="field__label">Nombre *</span>
+                <input className="field__input" name="nombre" type="text" required maxLength={120} />
+              </label>
+              <label className="field">
+                <span className="field__label">Correo</span>
+                <input className="field__input" name="correo" type="email" maxLength={254} />
+              </label>
             </div>
-            <textarea name="comentario" rows={3} placeholder="Escribe tu comentario *" required maxLength={2000} />
+            <label className="field">
+              <span className="field__label">Comentario *</span>
+              <textarea className="field__input field__textarea" name="comentario" rows={3} required maxLength={2000} />
+            </label>
             <input name="website" type="text" tabIndex={-1} autoComplete="off" aria-hidden="true" className="review-form__honeypot" />
           </div>
           {status.startsWith('error|') && <p className="review-form__status review-form__status--error">{status.slice(6)}</p>}
@@ -171,7 +223,9 @@ export default function ProductReviews({ productId, productTitle, reviews: initi
           <button className="btn btn--primary" type="submit">Publicar opinión</button>
         </form>
       ) : (
-        <p className="review-form__done">Tu opinión quedó publicada. ¡Gracias!</p>
+        <div className="review-form__done-card">
+          <p className="review-form__done">Tu opinión quedó publicada. ¡Gracias!</p>
+        </div>
       )}
     </section>
   );
