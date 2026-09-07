@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createCategory } from '../../lib/catalog';
+import { createCategory, deleteCategory } from '../../lib/catalog';
 
 export const prerender = false;
 
@@ -14,6 +14,22 @@ function slugify(value: string): string {
 
 export const POST: APIRoute = async ({ request }) => {
   const formData = await request.formData();
+  const action = String(formData.get('_action') ?? '');
+
+  if (action === 'delete') {
+    const id = Number(formData.get('id'));
+    if (!Number.isInteger(id) || id <= 0) {
+      return new Response(null, { status: 303, headers: { Location: '/admin/categorias?error=error' } });
+    }
+    try {
+      await deleteCategory(id);
+      return new Response(null, { status: 303, headers: { Location: '/admin/categorias?ok=borrada' } });
+    } catch (err) {
+      console.error(err);
+      return new Response(null, { status: 303, headers: { Location: '/admin/categorias?error=error' } });
+    }
+  }
+
   const name = String(formData.get('name') ?? '').trim();
   if (!name) {
     return new Response(null, { status: 303, headers: { Location: '/admin/categorias?error=nombre' } });
