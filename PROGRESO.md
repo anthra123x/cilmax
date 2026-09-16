@@ -32,6 +32,23 @@ Commit `761cbd7` (main de la tienda):
 Verificado: 27 tests verdes, cobertura ≥80 % (`search.ts`/`reviews.ts`),
 `astro check` 0 errores, rutas `/catalogo` y `/api/search` en 200.
 
+### Fase 3 — BD consolidada en Neon (schema `erp`) ✅
+
+**Decisión del usuario (reemplaza el "no migrar")**: conectar el ERP a la **BD
+Neon de la tienda** usando el **schema `erp`** de la misma instancia `neondb`
+(el storefront sigue en `public`). Supabase Auth queda únicamente como login.
+Datos reales del ERP anterior: "no / casi nada" → arranque limpio, sin migrar.
+
+- Commits del ERP: `849aa91`, `76d2f88` (importador), `f7a4859`.
+- `npm run db:push` ✅ y `npm run web:import --apply` ✅ contra Neon (schema
+  `erp`): 3 categorías, 10 productos con precios/stock/visibilidad reales,
+  2 mensajes, tema `#008a93/#d4af37`.
+- Verificación runtime (ERP dev local + storefront en modo ERP):
+  `/api/web/*` responde sobre `erp` (products, categories, products/[handle],
+  search, settings, reviews), `POST /api/web/contact` inserta en `erp`, y el
+  storefront con `CATALOG_SOURCE=erp ERP_API_URL=http://127.0.0.1:3000`
+  sirve `/catalogo` y el home con los productos/ajustes del ERP.
+
 ## Cómo activar el modo ERP
 
 ```bash
@@ -40,8 +57,11 @@ CATALOG_SOURCE=erp
 ERP_API_URL=https://<erp-desplegado>   # sin barra final
 ```
 
-El ERP debe estar desplegado con el schema aplicado (`npm run db:push`) y los
-datos importados (`npm run web:import --apply` — ver `cilmaxinventario/PROGRESO.md`).
+En local: `CATALOG_SOURCE=erp ERP_API_URL=http://127.0.0.1:3000 npm run dev`
+con el ERP corriendo (`npm run dev`). El ERP usa la misma BD Neon (schema
+`erp`), así que requiere redeploy o dev local con el `.env` actualizado
+(`DATABASE_URL`/`DIRECT_URL` → pooler de Neon + `schema=erp`, ver
+`cilmaxinventario/PROGRESO.md`).
 
 ## Pendiente
 
