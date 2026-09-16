@@ -49,37 +49,29 @@ Datos reales del ERP anterior: "no / casi nada" → arranque limpio, sin migrar.
   storefront con `CATALOG_SOURCE=erp ERP_API_URL=http://127.0.0.1:3000`
   sirve `/catalogo` y el home con los productos/ajustes del ERP.
 
-## Cómo activar el modo ERP
+## Estado
 
-```bash
-# .env de la tienda (o variables en Vercel)
-CATALOG_SOURCE=erp
-ERP_API_URL=https://<erp-desplegado>   # sin barra final
-```
+### Fase 3 — BD consolidada en Neon (schema `erp`) ✅
 
-En local: `CATALOG_SOURCE=erp ERP_API_URL=http://127.0.0.1:3000 npm run dev`
-con el ERP corriendo (`npm run dev`). El ERP usa la misma BD Neon (schema
-`erp`), así que requiere redeploy o dev local con el `.env` actualizado
-(`DATABASE_URL`/`DIRECT_URL` → pooler de Neon + `schema=erp`, ver
-`cilmaxinventario/PROGRESO.md`).
-
-## Pendiente
-
-- **Fase 3b (ERP)**: ✅ completada y commiteada en el ERP (`53eecce`) — el ERP
-  ya tiene la UI "Tienda online" (productos web, pedidos→venta POS, mensajes,
-  reseñas, ajustes de tema/WhatsApp). Falta **desplegarla** (commits sin
-  pushear de `gestion-inventario`).
+- ERP desplegado en `gestion-inventario-iobfhfb8q.vercel.app` con env vars
+  seteadas; `/api/web/categories|products|search|settings` = 200.
+- Tienda desplegada en `www.cilmax.store` con `CATALOG_SOURCE=erp` y
+  `ERP_API_URL` configurados en Vercel; `/catalogo` y `/api/search` devuelven
+  los 10 productos del ERP.
+- Build ambos proyectos verificado en Vercel.
 - **Proxy de pedidos**: con el ERP activo, `POST /api/orders` del shop deberá
   re-apuntarse al `POST /api/web/orders` del ERP. Hoy el frontend NO usa
   `/api/orders` (el checkout es WhatsApp puro); el pedido fire-and-forget al
   ERP (decisión v1) tampoco está implementado. Pendiente.
 - **Fase 4 — Deprecación**:
   - [x] Admin de tienda v1 migrado al ERP (Fase 3 + 3b).
-  - [ ] Pushear la tienda (6 commits sin subir) para que Vercel redepliegue
-        `cilmax.vercel.app` con el cliente ERP + fallback (hoy sirve una build
-        vieja).
-  - [ ] Setear `CATALOG_SOURCE=erp` / `ERP_API_URL` en las env vars de Vercel
-        de la tienda (una vez el ERP esté desplegado y con su BD `erp`).
+  - [x] Pushear la tienda (6 commits) para que Vercel redepliegue
+        `www.cilmax.store` con el cliente ERP.
+  - [x] Setear `CATALOG_SOURCE=erp` / `ERP_API_URL` en las env vars
+        de Vercel de la tienda (hecho).
   - [ ] Retirar el admin Astro (`admin/`) y desenlazarlo del menú/sitemap.
   - [ ] Archivar Neon (`public`) y limpiar fallback/mocks cuando el ERP esté
-        estable en producción.
+        confirmado estable en producción.
+  - [ ] Proxy de pedidos: re-apuntar `POST /api/orders` al ERP
+        `POST /api/web/orders` (y opcionalmente el fire-and-forget en
+        el botón WhatsApp).
