@@ -24,7 +24,7 @@ function makeProduct(overrides: Partial<ProductData> = {}): ProductData {
     collectionTitle: null,
     currencyCode: 'cop',
     featured: false,
-    categoryId: null,
+    categorySlug: null,
     rating: null,
     ...overrides,
   };

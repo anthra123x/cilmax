@@ -8,12 +8,12 @@ import ProductCard from '../components/ProductCard.astro';
 import { getProducts, getCategories } from '../lib/medusa';
 
 const catRaw = Astro.url.searchParams.get('categoria');
-const categoryId = catRaw && /^\d+$/.test(catRaw) ? Number(catRaw) : null;
+const categorySlug = catRaw?.trim() || null;
 const [products, categories] = await Promise.all([
-  getProducts(24, 0, { categoryId }),
+  getProducts(24, 0, { categorySlug }),
   getCategories(),
 ]);
-const activeCategory = categories.find((c) => c.id === categoryId) ?? null;
+const activeCategory = categories.find((c) => c.slug === categorySlug) ?? null;
 ---
 
 <Layout title="Catálogo — CilMax">
@@ -37,18 +37,18 @@ const activeCategory = categories.find((c) => c.id === categoryId) ?? null;
 
       <div class="catalog__chips" role="group" aria-label="Filtrar por categoría">
         <a
-          class={`catalog__chip${categoryId === null ? ' catalog__chip--active' : ''}`}
+          class={`catalog__chip${categorySlug === null ? ' catalog__chip--active' : ''}`}
           href="/catalogo"
-          aria-current={categoryId === null ? 'page' : undefined}
+          aria-current={categorySlug === null ? 'page' : undefined}
         >
           Todos
         </a>
         {categories.map((c) => {
-          const active = c.id === categoryId;
+          const active = c.slug === categorySlug;
           return (
             <a
               class={`catalog__chip${active ? ' catalog__chip--active' : ''}`}
-              href={`/catalogo?categoria=${c.id}`}
+              href={`/catalogo?categoria=${encodeURIComponent(c.slug)}`}
               aria-current={active ? 'page' : undefined}
             >
               {c.name}

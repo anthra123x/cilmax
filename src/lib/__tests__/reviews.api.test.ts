@@ -9,10 +9,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '../../pages/api/reviews';
 
-const { insertQuery } = vi.hoisted(() => ({ insertQuery: vi.fn() }));
+const { insertQuery, isErpEnabledMock, postWebActionMock } = vi.hoisted(() => ({
+  insertQuery: vi.fn(),
+  isErpEnabledMock: vi.fn(() => false),
+  postWebActionMock: vi.fn(),
+}));
 
 vi.mock('../../lib/db', () => ({
   getDb: () => ({ query: insertQuery }),
+}));
+
+vi.mock('../../lib/store-client', () => ({
+  isErpEnabled: isErpEnabledMock,
+  postWebAction: postWebActionMock,
 }));
 
 const VALID_BODY = {
@@ -35,6 +44,9 @@ function post(body: unknown) {
 
 beforeEach(() => {
   insertQuery.mockReset();
+  isErpEnabledMock.mockReset();
+  isErpEnabledMock.mockReturnValue(false);
+  postWebActionMock.mockReset();
 });
 
 describe('POST /api/reviews', () => {
@@ -112,5 +124,46 @@ describe('POST /api/reviews', () => {
   it('rechaza comentario demasiado largo con 400', async () => {
     const res = await post({ ...VALID_BODY, comentario: 'x'.repeat(2001) });
     expect(res.status).toBe(400);
+  });
+});
+
+describe('POST /api/reviews con el catálogo sobre el ERP', () => {
+  beforeEach(() => {
+    isErpEnabledMock.mockReturnValue(true);
+  });
+
+  it('escribe la reseña en el ERP (productId del ERP) y no toca Neon', async () => {
+    postWebActionMock.mockResolvedValue({ ok: true });
+    const res = await post(VALID_BODY);
+    const body = await res.json();
+    expect(res.status).toBe(200);
+    expect(body.ok).toBe(true);
+    expect(postWebActionMock).toHaveBeenCalledWith('/api/web/reviews', {
+      productId: 'prod_existente',
+      name: 'Cliente Test',
+      email: 'cliente@test.co',
+      rating: 5,
+      comment: 'Muy buen producto.',
+    });
+    expect(insertQuery).not.toHaveBeenCalled();
+  });
+
+  it('propaga el error del ERP como 400', async () => {
+    postWebActionMock.mockResolvedValue({ ok: false, error: 'Producto inválido.' });
+    const res = await post(VALID_BODY);
+    const body = await res.json();
+    expect(res.status).toBe(400);
+    expect(body.error).toBe('Producto inválido.');
+    expect(insertQuery).not.toHaveBeenCalled();
+  });
+
+  it('responde 500 genérico si el ERP está caído', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    postWebActionMock.mockRejectedValue(new Error('ERP caído'));
+    const res = await post(VALID_BODY);
+    expect(res.status).toBe(500);
+    const body = await res.json();
+    expect(body.error).toBe('No se pudo enviar la reseña. Intenta de nuevo.');
+    errorSpy.mockRestore();
   });
 });

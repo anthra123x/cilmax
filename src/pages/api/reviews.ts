@@ -4,6 +4,7 @@
 
 import type { APIRoute } from 'astro';
 import { getDb } from '../../lib/db';
+import { isErpEnabled, postWebAction } from '../../lib/store-client';
 
 export const prerender = false;
 
@@ -44,6 +45,27 @@ export const POST: APIRoute = async ({ request }) => {
     }
     if (!comentario) return json({ error: 'El comentario es obligatorio.' }, { status: 400 });
     if (comentario.length > MAX_COMENTARIO) return json({ error: 'El comentario es demasiado largo.' }, { status: 400 });
+
+    // Con el catálogo sobre el ERP, la reseña se escribe en el ERP (fuente de
+    // verdad de productos). Un productId desconocido es rechazado ahí con 400.
+    if (isErpEnabled()) {
+      try {
+        const result = (await postWebAction('/api/web/reviews', {
+          productId,
+          name: nombre,
+          email: correo || null,
+          rating: calificacion,
+          comment: comentario,
+        })) as { ok?: boolean; error?: string };
+        if (result.ok === false || result.error) {
+          return json({ error: result.error ?? 'Producto inválido.' }, { status: 400 });
+        }
+        return json({ ok: true });
+      } catch (err) {
+        console.error('[reviews] No se pudo escribir en el ERP.', err);
+        return json({ error: 'No se pudo enviar la reseña. Intenta de nuevo.' }, { status: 500 });
+      }
+    }
 
     const db = getDb();
 

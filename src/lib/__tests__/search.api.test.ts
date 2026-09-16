@@ -32,7 +32,7 @@ function makeProduct(): ProductData {
     collectionTitle: 'Hogar y oficina',
     currencyCode: 'cop',
     featured: true,
-    categoryId: null,
+    categorySlug: null,
     rating: { avg: 4.6, count: 2 },
   };
 }

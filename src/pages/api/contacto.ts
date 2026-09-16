@@ -5,6 +5,7 @@
 
 import type { APIRoute } from 'astro';
 import { getDb } from '../../lib/db';
+import { isErpEnabled, postWebAction } from '../../lib/store-client';
 
 export const prerender = false;
 
@@ -39,6 +40,29 @@ export const POST: APIRoute = async ({ request }) => {
     if (asunto.length > MAX_ASUNTO) return json({ error: 'El asunto es demasiado largo.' }, { status: 400 });
     if (!mensaje) return json({ error: 'El mensaje es obligatorio.' }, { status: 400 });
     if (mensaje.length > MAX_MENSAJE) return json({ error: 'El mensaje es demasiado largo.' }, { status: 400 });
+
+    // Con el catálogo sobre el ERP, el mensaje se escribe en el ERP (fuente de
+    // verdad). El ERP agrupa asunto+mensaje en un solo campo.
+    if (isErpEnabled()) {
+      try {
+        const defaultAsunto = 'Consulta desde la web';
+        const merged =
+          asunto && asunto !== defaultAsunto ? `${asunto} — ${mensaje}` : mensaje;
+        const result = (await postWebAction('/api/web/contact', {
+          name: nombre,
+          email: correo,
+          phone: null,
+          message: merged,
+        })) as { ok?: boolean; error?: string };
+        if (result.ok === false || result.error) {
+          return json({ error: result.error ?? 'No se pudo enviar el mensaje.' }, { status: 400 });
+        }
+        return json({ ok: true });
+      } catch (err) {
+        console.error('[contacto] No se pudo escribir en el ERP.', err);
+        return json({ error: 'No se pudo enviar el mensaje. Intenta de nuevo.' }, { status: 500 });
+      }
+    }
 
     const db = getDb();
     await db.query(
