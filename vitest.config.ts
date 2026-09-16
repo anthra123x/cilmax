@@ -8,6 +8,12 @@ export default defineConfig({
       provider: 'v8',
       include: ['src/pages/api/search.ts', 'src/pages/api/reviews.ts'],
       reporter: ['text', 'json-summary'],
+      thresholds: {
+        lines: 80,
+        functions: 80,
+        statements: 80,
+        branches: 80,
+      },
     },
   },
 });

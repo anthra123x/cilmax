@@ -12,7 +12,7 @@
     "agent-browser": {
       "type": "local",
       "command": [
-        "/home/anthra123x/cilmax tienda/node_modules/.bin/agent-browser",
+        "/home/omicron/Documentos/cilmax/node_modules/.bin/agent-browser",
         "mcp"
       ]
     }

@@ -77,4 +77,40 @@ describe('POST /api/reviews', () => {
     expect(res.status).toBe(400);
     expect(insertQuery).not.toHaveBeenCalled();
   });
+
+  it('responde 500 genérico cuando la base de datos falla', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    insertQuery.mockRejectedValueOnce(new Error('db caída'));
+    const res = await post({ ...VALID_BODY, productId: 'prod_x' });
+    expect(res.status).toBe(500);
+    const body = await res.json();
+    expect(body.error).toBe('No se pudo enviar la reseña. Intenta de nuevo.');
+    errorSpy.mockRestore();
+  });
+
+  it('rechaza productId vacío con 400', async () => {
+    const res = await post({ ...VALID_BODY, productId: '  ' });
+    expect(res.status).toBe(400);
+    expect(insertQuery).not.toHaveBeenCalled();
+  });
+
+  it('rechaza nombre demasiado largo con 400', async () => {
+    const res = await post({ ...VALID_BODY, nombre: 'x'.repeat(121) });
+    expect(res.status).toBe(400);
+  });
+
+  it('rechaza correo demasiado largo con 400', async () => {
+    const res = await post({ ...VALID_BODY, correo: `${'a'.repeat(250)}@x.co` });
+    expect(res.status).toBe(400);
+  });
+
+  it('rechaza correo con formato inválido con 400', async () => {
+    const res = await post({ ...VALID_BODY, correo: 'no-es-un-correo' });
+    expect(res.status).toBe(400);
+  });
+
+  it('rechaza comentario demasiado largo con 400', async () => {
+    const res = await post({ ...VALID_BODY, comentario: 'x'.repeat(2001) });
+    expect(res.status).toBe(400);
+  });
 });

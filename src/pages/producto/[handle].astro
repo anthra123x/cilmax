@@ -64,7 +64,6 @@ const reviewsAvg = reviews.length ? reviews.reduce((s, r) => s + r.calificacion,
   <section class="opiniones container">
     <ProductReviews
       productId={product.id}
-      productTitle={product.title}
       reviews={reviews}
       avg={reviewsAvg}
       count={reviews.length}

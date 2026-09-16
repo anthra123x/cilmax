@@ -2,7 +2,7 @@
 // inicial de reseñas y el promedio; al enviar el formulario hace POST a
 // /api/reviews y actualiza la lista y el promedio sin recargar la página.
 
-import { useState, useMemo, type FormEvent } from 'react';
+import { useState, useMemo, type SyntheticEvent } from 'react';
 
 interface Review {
   id: string;
@@ -16,7 +16,6 @@ interface Review {
 
 interface Props {
   productId: string;
-  productTitle: string;
   reviews: Review[];
   avg: number | null;
   count: number;
@@ -79,7 +78,7 @@ function formatDate(iso: string) {
   return d.toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-export default function ProductReviews({ productId, productTitle, reviews: initial, avg: initialAvg, count: initialCount }: Props) {
+export default function ProductReviews({ productId, reviews: initial, avg: initialAvg, count: initialCount }: Props) {
   const [reviews, setReviews] = useState<Review[]>(initial);
   const [avg, setAvg] = useState<number | null>(initialAvg);
   const [count, setCount] = useState(initialCount);
@@ -87,7 +86,7 @@ export default function ProductReviews({ productId, productTitle, reviews: initi
   const [status, setStatus] = useState('');
   const [sent, setSent] = useState(false);
 
-  async function onSubmit(e: FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const data = new FormData(form);
