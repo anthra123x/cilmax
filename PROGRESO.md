@@ -65,9 +65,21 @@ con el ERP corriendo (`npm run dev`). El ERP usa la misma BD Neon (schema
 
 ## Pendiente
 
-- **Fase 3b (ERP)**: UI "Tienda online" (productos web, pedidos, mensajes,
-  reseñas, ajustes de tema/WhatsApp).
+- **Fase 3b (ERP)**: ✅ completada y commiteada en el ERP (`53eecce`) — el ERP
+  ya tiene la UI "Tienda online" (productos web, pedidos→venta POS, mensajes,
+  reseñas, ajustes de tema/WhatsApp). Falta **desplegarla** (commits sin
+  pushear de `gestion-inventario`).
 - **Proxy de pedidos**: con el ERP activo, `POST /api/orders` del shop deberá
-  re-apuntarse al `POST /api/web/orders` del ERP (hoy no lo usa el frontend;
-  el checkout sigue siendo WhatsApp).
-- **Fase 4**: deprecar admin Astro, archivar Neon, evaluar consolidación.
+  re-apuntarse al `POST /api/web/orders` del ERP. Hoy el frontend NO usa
+  `/api/orders` (el checkout es WhatsApp puro); el pedido fire-and-forget al
+  ERP (decisión v1) tampoco está implementado. Pendiente.
+- **Fase 4 — Deprecación**:
+  - [x] Admin de tienda v1 migrado al ERP (Fase 3 + 3b).
+  - [ ] Pushear la tienda (6 commits sin subir) para que Vercel redepliegue
+        `cilmax.vercel.app` con el cliente ERP + fallback (hoy sirve una build
+        vieja).
+  - [ ] Setear `CATALOG_SOURCE=erp` / `ERP_API_URL` en las env vars de Vercel
+        de la tienda (una vez el ERP esté desplegado y con su BD `erp`).
+  - [ ] Retirar el admin Astro (`admin/`) y desenlazarlo del menú/sitemap.
+  - [ ] Archivar Neon (`public`) y limpiar fallback/mocks cuando el ERP esté
+        estable en producción.
