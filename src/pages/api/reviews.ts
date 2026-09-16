@@ -46,6 +46,18 @@ export const POST: APIRoute = async ({ request }) => {
     if (comentario.length > MAX_COMENTARIO) return json({ error: 'El comentario es demasiado largo.' }, { status: 400 });
 
     const db = getDb();
+
+    // El productId debe referenciar un producto vigente del catálogo. Sin esta
+    // verificación explícita, una reseña para una variante/producto borrado
+    // chocaba con la FK y terminaba en 500 en vez de un 400 limpio.
+    const exists = await db.query(
+      `select 1 from products where id = $1 and store_id = $2`,
+      [productId, 'cilmax'],
+    );
+    if (!exists.rowCount) {
+      return json({ error: 'Producto inválido.' }, { status: 400 });
+    }
+
     await db.query(
       `INSERT INTO product_reviews (store_id, product_id, nombre, correo, calificacion, comentario)
        VALUES ($1, $2, $3, $4, $5, $6)`,
