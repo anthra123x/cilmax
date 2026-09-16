@@ -9,6 +9,9 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "migrate": "node --env-file=.env scripts/migrate.mjs",
     "astro": "astro",
     "product": "node scripts/products.mjs",
@@ -40,7 +43,9 @@
     "@types/node": "^26.4.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
+    "@vitest/coverage-v8": "^5.0.1",
     "agent-browser": "^0.35.1",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.1"
   }
 }
