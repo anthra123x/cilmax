@@ -1,12 +1,8 @@
-// Capa de acceso a datos de la tienda. Orden de prioridad:
-//   1. ERP (gestion-inventario) — fuente de verdad del negocio (si CATALOG_SOURCE=erp).
-//   2. Base de datos (Neon) — fuente gestionada por el panel admin (legacy).
-//   3. Datos de ejemplo locales (src/lib/mock-data.ts) — solo para desarrollo.
+// Capa de acceso a datos de la tienda.
+// Fuente de verdad única: ERP (gestion-inventario) vía CATALOG_SOURCE=erp.
 //
 // Todas las funciones del frontend deben importar desde aquí.
 
-import { getDb } from './db';
-import { mockProducts } from './mock-data';
 import {
   erpToProductData,
   fetchCatalogProductByHandle,
@@ -111,424 +107,88 @@ export function formatPrice(amount: number, currencyCode: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// Normalización
+// Consultas de productos (ERP)
 // ---------------------------------------------------------------------------
 
-function toProductData(raw: any): ProductData | null {
-  if (!raw || !raw.id) return null;
-
-  const currencyCode =
-    (raw.variants?.[0]?.prices?.[0]?.currency_code ??
-      (raw.variants?.[0]?.calculated_price?.currency_code as string | undefined)) ||
-    'cop';
-
-  const variants: ProductVariant[] = (raw.variants ?? []).map((v: any) => {
-    const price = v.calculated_price ?? v.prices?.[0];
-    const amountInUnits = price?.amount ?? price?.original_amount ?? 0;
-    const variantCurrency = price?.currency_code ?? currencyCode;
-    return {
-      id: v.id,
-      title: v.title,
-      sku: v.sku ?? null,
-      amount: formatAmount(amountInUnits, variantCurrency),
-      currencyCode: variantCurrency,
-      inventoryQuantity: v.inventory_quantity ?? 0,
-    };
-  });
-
-  return {
-    id: raw.id,
-    title: raw.title,
-    handle: raw.handle ?? raw.id,
-    description: raw.description ?? '',
-    thumbnail: raw.thumbnail ?? raw.images?.[0]?.url ?? null,
-    images: (raw.images ?? []).map((img: any) => ({ url: img.url })),
-    variants,
-    collectionTitle: raw.collection?.title ?? null,
-    currencyCode,
-    featured: raw.featured ?? false,
-    categorySlug: raw.categorySlug ?? null,
-    rating: null,
-  };
-}
-
-function toProductDataFromDb(row: any, variants: ProductVariant[]): ProductData {
-  const images: ProductImage[] = (Array.isArray(row.images) ? row.images : [])
-    .filter(Boolean)
-    .map((url: string) => ({ url }));
-  return {
-    id: row.id,
-    title: row.title,
-    handle: row.handle,
-    description: row.description ?? '',
-    thumbnail: images[0]?.url ?? null,
-    images,
-    variants,
-    collectionTitle: row.category_name ?? null,
-    currencyCode: 'cop',
-    featured: row.featured ?? false,
-    categorySlug: row.category_slug ?? null,
-    rating: null,
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Base de datos (Neon)
-// ---------------------------------------------------------------------------
-
-interface DbProductRow {
-  id: string;
-  title: string;
-  handle: string;
-  description: string | null;
-  images: string[];
-  tags: string[];
-  featured: boolean;
-  sort_order: number;
-  category_name: string | null;
-  category_slug: string | null;
-}
-
-type ProductQueryOptions = {
-  categorySlug?: string | null;
-  search?: string;
-  excludeIds?: string[];
-};
-
-async function productsFromDb(
-  limit: number,
-  offset: number,
-  options: ProductQueryOptions = {}
-): Promise<ProductData[]> {
-  const db = getDb();
-  const clauses: string[] = [`p.store_id = 'cilmax'`];
-  const params: unknown[] = [];
-
-  if (options.categorySlug) {
-    params.push(options.categorySlug);
-    clauses.push(`c.slug = $${params.length}`);
-  }
-  if (options.search) {
-    params.push(`%${options.search.toLowerCase()}%`);
-    clauses.push(`lower(p.title) like $${params.length}`);
-  }
-  if (options.excludeIds && options.excludeIds.length > 0) {
-    params.push(options.excludeIds);
-    clauses.push(`p.id != all($${params.length}::text[])`);
-  }
-
-  params.push(limit, offset);
-  const { rows } = await db.query<DbProductRow>(
-    `select p.id, p.title, p.handle, p.description, p.images, p.tags, p.featured, p.sort_order,
-            c.name as category_name, c.slug as category_slug
-       from products p
-       left join categories c on c.id = p.category_id
-      where ${clauses.join(' and ')}
-      order by p.sort_order asc, p.title asc
-      limit $${params.length - 1} offset $${params.length}`,
-    params
-  );
-
-  if (rows.length === 0) return [];
-
-  const ids = rows.map((r) => r.id);
-  const { rows: variantRows } = await db.query<any>(
-    `select id, product_id, title, sku, price, currency, inventory_quantity
-       from product_variants
-      where product_id = any($1::text[])
-      order by title asc`,
-    [ids]
-  );
-
-  const variantsByProduct = new Map<string, ProductVariant[]>();
-  for (const v of variantRows) {
-    const list = variantsByProduct.get(v.product_id) ?? [];
-    list.push({
-      id: v.id,
-      title: v.title,
-      sku: v.sku ?? null,
-      amount: formatAmount(v.price, v.currency),
-      currencyCode: v.currency,
-      inventoryQuantity: v.inventory_quantity ?? 0,
-    });
-    variantsByProduct.set(v.product_id, list);
-  }
-
-  return rows.map((r) => toProductDataFromDb(r, variantsByProduct.get(r.id) ?? []));
-}
-
-async function themeFromDb(): Promise<StoreTheme | null> {
-  try {
-    const db = getDb();
-    const { rows } = await db.query<{ primary_color: string; gold_color: string }>(
-      `select primary_color, gold_color from store_settings where store_id = 'cilmax'`
-    );
-    if (rows[0]) {
-      return { primaryColor: rows[0].primary_color, goldColor: rows[0].gold_color };
-    }
-  } catch (error) {
-    console.warn('[medusa] No se pudo leer los colores de la BD.', error);
-  }
-  return null;
-}
-
-// ---------------------------------------------------------------------------
-// ERP (gestion-inventario)
-// ---------------------------------------------------------------------------
-
-/** Consulta los productos al ERP. Devuelve null si el ERP no está activo. Lanza si falla. */
-async function productsFromErp(
-  limit: number,
-  offset: number,
-  options: ProductQueryOptions = {}
-): Promise<ProductData[]> {
-  if (!isErpEnabled()) return []; 
-  const list = await fetchCatalogProducts({
-    limit,
-    offset,
-    categorySlug: options.categorySlug,
-    search: options.search,
-  });
-  return list.map(erpToProductData);
-}
-
-// ---------------------------------------------------------------------------
-// Consultas de productos
-// ---------------------------------------------------------------------------
-
-/** Devuelve el tema de la tienda (colores de marca) desde el ERP/Bd, o el default. */
+/** Devuelve el tema de la tienda desde el ERP, o el default. */
 export async function getStoreTheme(): Promise<StoreTheme> {
   if (isErpEnabled()) {
     try {
       const settings = await fetchWebSettings();
       return settings.theme?.primaryColor ? settings.theme : FALLBACK_THEME;
-    } catch (error) {
-      console.warn('[medusa] No se pudo leer el tema del ERP, usando BD/fallback.', error);
+    } catch {
+      console.warn('[medusa] No se pudo leer el tema del ERP, usando fallback.');
     }
   }
-  return (await themeFromDb()) ?? FALLBACK_THEME;
+  return FALLBACK_THEME;
 }
 
-export async function getProducts(limit = 12, offset = 0, options: ProductQueryOptions = {}): Promise<ProductData[]> {
-  // 1. ERP (fuente de verdad)
-  if (isErpEnabled()) {
-    try {
-      return await productsFromErp(limit, offset, options);
-    } catch (error) {
-      console.warn('[medusa] No se pudo leer el catálogo del ERP, usando BD/mock.', error);
-    }
-  }
-
-  // 2. Base de datos (legacy)
-  try {
-    return await productsWithRatings(limit, offset, options);
-  } catch (error) {
-    console.warn('[medusa] No se pudo leer la BD, usando fallback.', error);
-  }
-
-  // 3. Datos de ejemplo (desarrollo)
-  let mocks = mockProducts.slice(offset, offset + limit);
-  if (options.search) {
-    const q = options.search.toLowerCase();
-    mocks = mocks.filter((p) => p.title.toLowerCase().includes(q));
-  }
-  return mocks.map(toProductData) as ProductData[];
+export async function getProducts(limit = 12, offset = 0, options: { categorySlug?: string | null; search?: string; excludeIds?: string[] } = {}): Promise<ProductData[]> {
+  if (!isErpEnabled()) return [];
+  const list = await fetchCatalogProducts({ limit, offset, categorySlug: options.categorySlug, search: options.search });
+  return list.map(erpToProductData);
 }
 
 /** Devuelve las categorías de la tienda (para el filtro del catálogo). */
 export async function getCategories(): Promise<CategoryData[]> {
-  if (isErpEnabled()) {
-    try {
-      return await fetchCategories();
-    } catch (error) {
-      console.warn('[medusa] No se pudieron leer las categorías del ERP, usando BD.', error);
-    }
-  }
+  if (!isErpEnabled()) return [];
   try {
-    const db = getDb();
-    const { rows } = await db.query<CategoryData>(
-      `select id, name, slug from categories
-        where store_id = 'cilmax'
-        order by name asc`
-    );
-    return rows;
-  } catch (error) {
-    console.warn('[medusa] No se pudo leer las categorías de la BD.', error);
+    return await fetchCategories();
+  } catch {
+    console.warn('[medusa] No se pudieron leer las categorías del ERP.');
     return [];
   }
 }
 
-/** Busca productos por nombre (para el buscador live). Usa el store cilmax. */
+/** Busca productos por nombre (para el buscador live). */
 export async function searchProducts(query: string, limit = 8): Promise<ProductData[]> {
   const q = query.trim();
   if (!q) return [];
-  if (isErpEnabled()) {
-    try {
-      const list = await fetchCatalogProducts({ limit, search: q });
-      return list.map(erpToProductData);
-    } catch (error) {
-      console.warn('[medusa] No se pudo buscar en el ERP, usando BD/mock.', error);
-    }
-  }
+  if (!isErpEnabled()) return [];
   try {
-    return await productsWithRatings(limit, 0, { search: q });
-  } catch (error) {
-    console.warn('[medusa] No se pudo buscar en la BD, usando fallback.', error);
+    const list = await fetchCatalogProducts({ limit, search: q });
+    return list.map(erpToProductData);
+  } catch {
+    console.warn('[medusa] No se pudo buscar en el ERP.');
+    return [];
   }
-  const lower = q.toLowerCase();
-  return mockProducts
-    .filter((p) => p.title.toLowerCase().includes(lower))
-    .slice(0, limit)
-    .map(toProductData) as ProductData[];
 }
 
 /** Productos de la misma categoría (sugerencias), excluyendo el producto actual. */
-export async function getRelatedProducts(
-  product: ProductData,
-  limit = 4
-): Promise<ProductData[]> {
+export async function getRelatedProducts(product: ProductData, limit = 4): Promise<ProductData[]> {
   if (product.categorySlug == null) return [];
-  if (isErpEnabled()) {
-    try {
-      const list = await fetchCatalogProducts({ limit: limit + 1, categorySlug: product.categorySlug });
-      return list
-        .filter((p) => p.id !== product.id)
-        .slice(0, limit)
-        .map(erpToProductData);
-    } catch (error) {
-      console.warn('[medusa] No se pudieron leer productos relacionados del ERP, usando BD.', error);
-    }
-  }
+  if (!isErpEnabled()) return [];
   try {
-    return await productsWithRatings(limit, 0, {
-      categorySlug: product.categorySlug,
-      excludeIds: [product.id],
-    });
-  } catch (error) {
-    console.warn('[medusa] No se pudo leer productos relacionados de la BD.', error);
+    const list = await fetchCatalogProducts({ limit: limit + 1, categorySlug: product.categorySlug });
+    return list.filter((p) => p.id !== product.id).slice(0, limit).map(erpToProductData);
+  } catch {
+    console.warn('[medusa] No se pudieron leer productos relacionados del ERP.');
     return [];
   }
 }
 
 export async function getProductByHandle(handle: string): Promise<ProductData | null> {
-  // 1. ERP (fuente de verdad)
-  if (isErpEnabled()) {
-    try {
-      const product = await fetchCatalogProductByHandle(handle);
-      return product ? erpToProductData(product) : null;
-    } catch (error) {
-      console.warn('[medusa] No se pudo leer el producto del ERP, usando BD/mock.', error);
-    }
-  }
-
-  // 2. Base de datos (legacy)
+  if (!isErpEnabled()) return null;
   try {
-    const db = getDb();
-    const { rows } = await db.query<DbProductRow>(
-      `select p.id, p.title, p.handle, p.description, p.images, p.tags, p.featured, p.sort_order,
-              c.name as category_name, c.slug as category_slug
-         from products p
-         left join categories c on c.id = p.category_id
-        where p.store_id = 'cilmax' and p.handle = $1
-        limit 1`,
-      [handle]
-    );
-    if (rows[0]) {
-      const { rows: variantRows } = await db.query<any>(
-        `select id, product_id, title, sku, price, currency, inventory_quantity
-           from product_variants
-          where product_id = $1
-          order by title asc`,
-        [rows[0].id]
-      );
-      const variants: ProductVariant[] = variantRows.map((v) => ({
-        id: v.id,
-        title: v.title,
-        sku: v.sku ?? null,
-        amount: formatAmount(v.price, v.currency),
-        currencyCode: v.currency,
-        inventoryQuantity: v.inventory_quantity ?? 0,
-      }));
-      const single = await attachRatings([toProductDataFromDb(rows[0], variants)]);
-      return single[0] ?? null;
-    }
-  } catch (error) {
-    console.warn('[medusa] No se pudo leer el producto de la BD, usando fallback.', error);
+    const product = await fetchCatalogProductByHandle(handle);
+    return product ? erpToProductData(product) : null;
+  } catch {
+    console.warn('[medusa] No se pudo leer el producto del ERP.');
+    return null;
   }
-
-  const mock = mockProducts.find((p) => p.handle === handle || p.id === handle);
-  return mock ? toProductData(mock) : null;
 }
 
 // ---------------------------------------------------------------------------
-// Opiniones y calificaciones (product_reviews)
+// Opiniones y calificaciones (ERP)
 // ---------------------------------------------------------------------------
-
-/** Adjunta la calificación promedio y el número de opiniones a cada producto (una sola query agregada). */
-async function attachRatings(products: ProductData[]): Promise<ProductData[]> {
-  if (products.length === 0) return products;
-  const db = getDb();
-  try {
-    const ids = products.map((p) => p.id);
-    const { rows } = await db.query<{ product_id: string; avg: string; count: string }>(
-      `select product_id,
-              round(avg(calificacion), 1) as avg,
-              count(*) as count
-         from product_reviews
-        where store_id = $1 and product_id = any($2::text[])
-        group by product_id`,
-      ['cilmax', ids]
-    );
-    const byId = new Map<string, ProductRating>();
-    for (const r of rows) {
-      byId.set(r.product_id, { avg: Number(r.avg), count: Number(r.count) });
-    }
-    return products.map((p) => (byId.has(p.id) ? { ...p, rating: byId.get(p.id)! } : p));
-  } catch (error) {
-    console.warn('[medusa] No se pudo leer las calificaciones.', error);
-    return products;
-  }
-}
-
-/** Adjunta ratings a los productos devueltos por productosFromDb. */
-async function productsWithRatings(
-  limit: number,
-  offset: number,
-  options: ProductQueryOptions = {}
-): Promise<ProductData[]> {
-  return attachRatings(await productsFromDb(limit, offset, options));
-}
 
 /** Devuelve las opiniones SSR de un producto (más recientes primero). */
 export async function getProductReviews(productId: string, limit = 50): Promise<ProductReview[]> {
-  if (isErpEnabled()) {
-    try {
-      return await fetchProductReviews(productId, limit);
-    } catch (error) {
-      console.warn('[medusa] No se pudieron leer las opiniones del ERP, usando BD.', error);
-    }
-  }
+  if (!isErpEnabled()) return [];
   try {
-    const db = getDb();
-    const { rows } = await db.query(
-      `select id, product_id, nombre, correo, calificacion, comentario, created_at
-         from product_reviews
-        where store_id = $1 and product_id = $2
-        order by created_at desc
-        limit $3`,
-      ['cilmax', productId, limit]
-    );
-    return rows.map((r) => ({
-      id: r.id,
-      productId: r.product_id,
-      nombre: r.nombre,
-      correo: r.correo,
-      calificacion: Number(r.calificacion),
-      comentario: r.comentario,
-      createdAt: r.created_at instanceof Date ? r.created_at.toISOString() : String(r.created_at),
-    }));
-  } catch (error) {
-    console.warn('[medusa] No se pudieron leer las opiniones.', error);
+    return await fetchProductReviews(productId, limit);
+  } catch {
+    console.warn('[medusa] No se pudieron leer las opiniones del ERP.');
     return [];
   }
 }
