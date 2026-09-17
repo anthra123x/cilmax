@@ -80,5 +80,6 @@ Datos reales del ERP anterior: "no / casi nada" → arranque limpio, sin migrar.
         precio/total recalculados (commit `c8c2f85`).
   - [x] Desplegado en Vercel (`cilmax-cpuwwija2`, Ready) y probado end-to-end
         junto con la conversión pedido→venta del panel del ERP.
-  - [ ] Considerar apuntar `ERP_API_URL` al alias estable del ERP
-        (`gestion-inventario-liart.vercel.app`) en vez del deploy pinneado actual.
+  - [x] Apuntado `ERP_API_URL` al alias estable del ERP
+        (`https://gestion-inventario-liart.vercel.app`) en vez del deploy
+        pinneado; storefront redesplegado y verificado (catálogo + proxy).
