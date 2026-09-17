@@ -7,10 +7,11 @@
 
 ## Objetivo
 
-Sustituir el panel admin (Astro + Keystatic + Neon) gestionando la tienda desde
-el ERP. La tienda consume la API pública `/api/web/*` del ERP (fuente de
-verdad) con **caché TTL + fallback** a Neon/mocks: nunca se rompe si el ERP
-falla.
+La tienda es un frontend puro (Astro) sobre la API pública del ERP
+`/api/web/*` (fuente de verdad única del catálogo, reseñas, tema, mensajes y
+pedidos). **La tienda no usa base de datos propia** (sin fallback a Neon ni
+mocks); si el ERP falla, las consultas devuelven vacío y la tienda queda
+operativa visualmente.
 
 ## Estado (fechado)
 
@@ -71,9 +72,7 @@ Datos reales del ERP anterior: "no / casi nada" → arranque limpio, sin migrar.
         de Vercel de la tienda (hecho).
   - [x] Retirar el admin Astro (`admin/`) y desenlazarlo del menú/sitemap
         (`git rm -r admin/`, commit `c8c2f85`).
-  - [ ] Archivar Neon (`public`) y limpiar fallback/mocks cuando el ERP esté
-        confirmado estable en producción (`src/lib/medusa.ts` ya es ERP-only;
-        quedan `lib/db.ts` y `mock-data.ts` legacy, uso interno).
+  - [x] Archivar Neon (`public`) y limpiar fallback/mocks. **Hecho (Fase 5)**.
   - [x] Proxy de pedidos: `POST /api/orders` reescrito para reenviar al ERP
         `POST /api/web/orders` (mapea `name→customerName`, etc.). Verificado en
         producción: `www.cilmax.store/api/orders` crea la orden en el ERP con
@@ -83,3 +82,24 @@ Datos reales del ERP anterior: "no / casi nada" → arranque limpio, sin migrar.
   - [x] Apuntado `ERP_API_URL` al alias estable del ERP
         (`https://gestion-inventario-liart.vercel.app`) en vez del deploy
         pinneado; storefront redesplegado y verificado (catálogo + proxy).
+
+### Fase 5 — Limpieza y optimización (tienda sin base de datos) ✅
+
+La tienda queda como frontend puro sobre el ERP; se eliminó todo lo legacy del
+backend Medusa/Neon:
+
+- APIs ERP-only: `POST /api/contacto` y `POST /api/reviews` escriben solo al
+  ERP (sin branch Neon); `GET /api/orders` (consulta legacy a Neon con
+  `x-admin-key`) desactivada → los pedidos se gestionan desde el ERP.
+- Borrados: `src/lib/db.ts`, `src/lib/mock-data.ts`, `src/data/*` (categorías,
+  productos y site.json), `scripts/{migrate,products}.mjs`, `db/migrations/`.
+- `palette.ts` ya no importa `site.json` (tema viene del ERP).
+- `package.json`: fuera `@neondatabase/serverless` y `gsap`; scripts legacy
+  `migrate` / `product:*` eliminados. Se mantiene `agent-browser` (MCP).
+- `.env` / `.env.example`: sin `DATABASE_URL` ni `ADMIN_KEY`; la tienda no
+  conecta a Postgres.
+- **BD Neon**: schema `public` legacy dropeado (9 tablas: categories, products,
+  product_variants, customers, orders, product_reviews, contact_messages,
+  store_settings, schema_migrations) y recreado vacío. El schema `erp`
+  (25 tablas, datos reales del ERP) queda intacto.
+- Sumario de filas antes del drop archivado en `/tmp/opencode/neon-cleanup-result.json`.

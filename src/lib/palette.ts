@@ -1,10 +1,8 @@
 // Paleta de marca derivada desde los colores base (primary y gold). En
 // global.css los tokens de :root sirven de fallback; aquí se calculan las
 // variantes (hover/soft/acentos) y se inyectan como style inline en <html>
-// desde Layout.astro para que ganen a :root. Los colores base pueden venir de
-// la base de datos (panel admin) o del archivo src/data/site.json.
-
-import siteData from '../data/site.json';
+// desde Layout.astro para que ganen a :root. Los colores base vienen del ERP
+// (settings.theme), con defaults fijos si llegan vacíos.
 
 const FALLBACK_PRIMARY = '#008a93';
 const FALLBACK_GOLD = '#d4af37';
@@ -54,11 +52,3 @@ export function buildPalette(
     '--color-gold-bright': mix(gold, '#ffffff', 0.28),
   };
 }
-
-/** Atributo `style` para el <html> del Layout: vars inline que ganan a :root.
- *  Usa los colores de src/data/site.json como fallback. */
-export const paletteStyle = Object.entries(
-  buildPalette(siteData?.primaryColor, siteData?.goldColor)
-)
-  .map(([k, v]) => `${k}:${v};`)
-  .join('');

@@ -3,11 +3,13 @@
  *
  * Cuando `CATALOG_SOURCE=erp` (y `ERP_API_URL` está definido), el catálogo y
  * las reseñas de la tienda se leen desde el ERP. La capa de datos de la tienda
- * (medusa.ts) intenta primero este cliente y, si falla, cae al flujo Neon o a
- * los datos locales: la tienda nunca se rompe por el ERP.
+ * (medusa.ts) aplica aquí el envoltorio con timeout y caché: si el ERP falla
+ * devuelve vacío/default, la tienda nunca se rompe por el ERP.
  *
- * El ERP es la fuente de verdad de productos/precios/stock. Esta capa solo lee
- * (GET) y escribe pedidos web, mensajes y reseñas (POST) hacia /api/web/*.
+ * El ERP es la fuente de verdad única de productos/precios/stock, reseñas,
+ * tema, mensajes y pedidos. Esta capa solo lee (GET) y escribe mensajes de
+ * contacto y reseñas (POST) hacia /api/web/*. La tienda no tiene base de datos
+ * propia.
  */
 
 import type { CategoryData, ProductData, ProductRating, ProductReview, StoreTheme } from './medusa';

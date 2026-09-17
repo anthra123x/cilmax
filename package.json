@@ -12,17 +12,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "migrate": "node --env-file=.env scripts/migrate.mjs",
-    "astro": "astro",
-    "product": "node scripts/products.mjs",
-    "product:list": "node scripts/products.mjs list",
-    "product:collections": "node scripts/products.mjs collections",
-    "product:new": "node scripts/products.mjs new",
-    "product:info": "node scripts/products.mjs info",
-    "product:edit": "node scripts/products.mjs edit",
-    "product:rm": "node scripts/products.mjs rm",
-    "product:featured": "node scripts/products.mjs featured",
-    "product:add-variant": "node scripts/products.mjs add-variant"
+    "astro": "astro"
   },
   "keywords": [],
   "author": "",
@@ -31,9 +21,7 @@
     "@astrojs/react": "^6.0.4",
     "@astrojs/vercel": "^11.0.8",
     "@nanostores/react": "^1.1.0",
-    "@neondatabase/serverless": "^1.1.0",
     "astro": "^7.2.9",
-    "gsap": "^3.15.0",
     "nanostores": "^1.5.2",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"

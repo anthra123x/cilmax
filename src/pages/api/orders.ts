@@ -1,16 +1,14 @@
 // API de pedidos del storefront CilMax.
-// POST /api/orders -> proxy al ERP: reenvía al ERP /api/web/orders.
-// GET  /api/orders -> consulta de administracion; exige header x-admin-key.
+// POST /api/orders -> proxy al ERP: reenvía al ERP /api/web/orders (fuente de
+// verdad). Los pedidos se consultan y gestionan desde el panel del ERP.
 //
 // Seguridad: el ERP re-lee precios/clientes desde su BD
 // (no se confía en los enviados). Igual que antes, no se aceptan montos manipulados.
 
 import type { APIRoute } from 'astro';
-import { getDb } from '../../lib/db';
 
 export const prerender = false;
 
-const ADMIN_KEY: string | undefined = import.meta.env.ADMIN_KEY as string | undefined;
 const ERP_API_URL: string | undefined = import.meta.env.ERP_API_URL as string | undefined;
 
 const MAX_ITEMS = 50;
@@ -118,27 +116,5 @@ export const POST: APIRoute = async ({ request }) => {
   }
 };
 
-export const GET: APIRoute = async ({ request }) => {
-  if (!ADMIN_KEY) {
-    return json({ ok: false, error: 'Consulta desactivada: falta ADMIN_KEY.' }, { status: 501 });
-  }
-  if (request.headers.get('x-admin-key') !== ADMIN_KEY) {
-    return json({ ok: false, error: 'No autorizado.' }, { status: 401 });
-  }
-  try {
-    const db = getDb();
-    const result = await db.query(
-      `select o.id, o.status, o.currency, o.subtotal_cop, o.created_at, o.items,
-               c.name, c.phone, c.email
-        from orders o
-        join customers c on c.id = o.customer_id
-        where o.store_id = 'cilmax'
-        order by o.created_at desc
-        limit 100`,
-    );
-    return json({ ok: true, orders: result.rows });
-  } catch (error) {
-    console.error('GET /api/orders:', error);
-    return json({ ok: false, error: 'Error interno del servidor.' }, { status: 500 });
-  }
-};
+export const GET: APIRoute = () =>
+  json({ ok: false, error: 'Consulta desactivada: gestiona los pedidos desde el ERP.' }, { status: 501 });

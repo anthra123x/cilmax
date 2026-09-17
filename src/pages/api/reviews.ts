@@ -1,9 +1,9 @@
-// API de reseñas de productos del backend CilMax (Neon Postgres).
-// POST /api/reviews -> recibe una opinión del formulario de reseñas del
-// storefront, la valida y la guarda en product_reviews (se publica al instante).
+// API de reseñas de productos del storefront.
+// POST /api/reviews -> recibe una opinión del formulario de reseñas, la valida
+// y la escribe en el ERP (/api/web/reviews), ÚNICA fuente de verdad. Un
+// productId desconocido es rechazado ahí con 400 limpio.
 
 import type { APIRoute } from 'astro';
-import { getDb } from '../../lib/db';
 import { isErpEnabled, postWebAction } from '../../lib/store-client';
 
 export const prerender = false;
@@ -46,47 +46,28 @@ export const POST: APIRoute = async ({ request }) => {
     if (!comentario) return json({ error: 'El comentario es obligatorio.' }, { status: 400 });
     if (comentario.length > MAX_COMENTARIO) return json({ error: 'El comentario es demasiado largo.' }, { status: 400 });
 
+    if (!isErpEnabled()) {
+      return json({ error: 'No se pudo enviar la reseña. Intenta de nuevo.' }, { status: 503 });
+    }
+
     // Con el catálogo sobre el ERP, la reseña se escribe en el ERP (fuente de
     // verdad de productos). Un productId desconocido es rechazado ahí con 400.
-    if (isErpEnabled()) {
-      try {
-        const result = (await postWebAction('/api/web/reviews', {
-          productId,
-          name: nombre,
-          email: correo || null,
-          rating: calificacion,
-          comment: comentario,
-        })) as { ok?: boolean; error?: string };
-        if (result.ok === false || result.error) {
-          return json({ error: result.error ?? 'Producto inválido.' }, { status: 400 });
-        }
-        return json({ ok: true });
-      } catch (err) {
-        console.error('[reviews] No se pudo escribir en el ERP.', err);
-        return json({ error: 'No se pudo enviar la reseña. Intenta de nuevo.' }, { status: 500 });
+    try {
+      const result = (await postWebAction('/api/web/reviews', {
+        productId,
+        name: nombre,
+        email: correo || null,
+        rating: calificacion,
+        comment: comentario,
+      })) as { ok?: boolean; error?: string };
+      if (result.ok === false || result.error) {
+        return json({ error: result.error ?? 'Producto inválido.' }, { status: 400 });
       }
+      return json({ ok: true });
+    } catch (err) {
+      console.error('[reviews] No se pudo escribir en el ERP.', err);
+      return json({ error: 'No se pudo enviar la reseña. Intenta de nuevo.' }, { status: 500 });
     }
-
-    const db = getDb();
-
-    // El productId debe referenciar un producto vigente del catálogo. Sin esta
-    // verificación explícita, una reseña para una variante/producto borrado
-    // chocaba con la FK y terminaba en 500 en vez de un 400 limpio.
-    const exists = await db.query(
-      `select 1 from products where id = $1 and store_id = $2`,
-      [productId, 'cilmax'],
-    );
-    if (!exists.rowCount) {
-      return json({ error: 'Producto inválido.' }, { status: 400 });
-    }
-
-    await db.query(
-      `INSERT INTO product_reviews (store_id, product_id, nombre, correo, calificacion, comentario)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      ['cilmax', productId, nombre, correo || null, calificacion, comentario],
-    );
-
-    return json({ ok: true });
   } catch (err) {
     console.error(err);
     return json({ error: 'No se pudo enviar la reseña. Intenta de nuevo.' }, { status: 500 });
