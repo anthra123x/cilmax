@@ -69,9 +69,16 @@ Datos reales del ERP anterior: "no / casi nada" → arranque limpio, sin migrar.
         `www.cilmax.store` con el cliente ERP.
   - [x] Setear `CATALOG_SOURCE=erp` / `ERP_API_URL` en las env vars
         de Vercel de la tienda (hecho).
-  - [ ] Retirar el admin Astro (`admin/`) y desenlazarlo del menú/sitemap.
+  - [x] Retirar el admin Astro (`admin/`) y desenlazarlo del menú/sitemap
+        (`git rm -r admin/`, commit `c8c2f85`).
   - [ ] Archivar Neon (`public`) y limpiar fallback/mocks cuando el ERP esté
-        confirmado estable en producción.
-  - [ ] Proxy de pedidos: re-apuntar `POST /api/orders` al ERP
-        `POST /api/web/orders` (y opcionalmente el fire-and-forget en
-        el botón WhatsApp).
+        confirmado estable en producción (`src/lib/medusa.ts` ya es ERP-only;
+        quedan `lib/db.ts` y `mock-data.ts` legacy, uso interno).
+  - [x] Proxy de pedidos: `POST /api/orders` reescrito para reenviar al ERP
+        `POST /api/web/orders` (mapea `name→customerName`, etc.). Verificado en
+        producción: `www.cilmax.store/api/orders` crea la orden en el ERP con
+        precio/total recalculados (commit `c8c2f85`).
+  - [x] Desplegado en Vercel (`cilmax-cpuwwija2`, Ready) y probado end-to-end
+        junto con la conversión pedido→venta del panel del ERP.
+  - [ ] Considerar apuntar `ERP_API_URL` al alias estable del ERP
+        (`gestion-inventario-liart.vercel.app`) en vez del deploy pinneado actual.
