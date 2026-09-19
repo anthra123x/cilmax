@@ -113,13 +113,31 @@ const footerColumns = [
   }
 
   .footer__links a {
+    position: relative;
     font-size: var(--font-size-sm);
     color: var(--color-text-muted);
     transition: color 0.2s ease;
   }
 
+  .footer__links a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -2px;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.25s var(--ease-out-quart);
+  }
+
   .footer__links a:hover {
     color: var(--color-primary);
+  }
+
+  .footer__links a:hover::after {
+    transform: scaleX(1);
   }
 
   .footer__bottom {

@@ -99,3 +99,20 @@ const items = [
     </li>
   </ul>
 </nav>
+
+<style>
+  /* Micro-interacciones de la navegación móvil (la base vive en global.css):
+     indicador activo que aparece con suavidad y el icono responde al toque. */
+  .bottom-nav__link--active::before {
+    transform-origin: center;
+    transition: transform 0.25s var(--ease-out-quart), opacity 0.25s ease;
+  }
+
+  .bottom-nav__icon {
+    transition: transform 0.2s var(--ease-out-quart);
+  }
+
+  .bottom-nav__link:active .bottom-nav__icon {
+    transform: scale(0.9);
+  }
+</style>

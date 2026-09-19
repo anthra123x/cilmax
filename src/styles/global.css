@@ -81,6 +81,11 @@
   --shadow-md: 0 6px 20px color-mix(in srgb, var(--color-primary) 10%, transparent);
   --shadow-lg: 0 16px 40px color-mix(in srgb, var(--color-primary) 14%, transparent);
 
+  /* ---- Movimiento (curvas de marca, sin bounce ni elastic) ---- */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
   /* ---- Layout ---- */
   --container-max: 1200px;
   --header-height: 72px;
@@ -123,6 +128,17 @@ button {
   cursor: pointer;
 }
 
+/* ---- Tipografía básica ---- */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
 .container {
   width: 100%;
   max-width: var(--container-max);
@@ -143,6 +159,66 @@ button {
   border: 0;
 }
 
+/* ============================================================
+   MOVIMIENTO — entrada de héroe y revelado en scroll (sutil)
+   ============================================================ */
+
+/* Entrada escalonada de un bloque (hero): una sola vez, al cargar. */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rise-in {
+  animation: rise-in 0.6s var(--ease-out-quart) both;
+  animation-delay: var(--rise-delay, 0ms);
+}
+
+/* Reveal on scroll con cadencia (stagger) por tarjeta. El DEFAULT es visible:
+   solo con JS activo (html.js) se parte de oculto para animar la entrada.
+   Con prefers-reduced-motion todo queda visible al instante. */
+[data-reveal] {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.6s var(--ease-out-quart), transform 0.6s var(--ease-out-quart);
+  transition-delay: min(calc(var(--i, 0) * 45ms), 450ms);
+}
+
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+.js [data-reveal].is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js [data-reveal],
+  .rise-in {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* Celdas que envuelven las tarjetas para el reveal: la card llena la celda. */
+.catalog__cell,
+.related__cell {
+  display: flex;
+}
+
+.catalog__cell > *,
+.related__cell > * {
+  flex: 1;
+}
+
 /* ---- Botones ---- */
 .btn {
   display: inline-flex;
@@ -159,8 +235,12 @@ button {
     border-color 0.2s ease, color 0.2s ease;
 }
 
+.btn:hover {
+  transform: translateY(-1px);
+}
+
 .btn:active {
-  transform: scale(0.98);
+  transform: translateY(0) scale(0.98);
 }
 
 .btn--primary {
@@ -623,6 +703,7 @@ button {
   font-weight: 800;
   color: var(--color-accent);
   letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
 }
 
 .buy-box__variants {
@@ -652,7 +733,15 @@ button {
   color: var(--color-text);
   font-weight: 500;
   font-size: var(--font-size-sm);
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.12s ease;
+}
+
+.buy-box__option:hover {
+  border-color: var(--color-accent);
+}
+
+.buy-box__option:active {
+  transform: scale(0.97);
 }
 
 .buy-box__option--active {

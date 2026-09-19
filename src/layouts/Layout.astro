@@ -28,7 +28,7 @@ const paletteStyle = Object.entries(buildPalette(theme.primaryColor, theme.goldC
 ---
 
 <!doctype html>
-<html lang="es" style={paletteStyle}>
+<html class="no-js" lang="es" style={paletteStyle}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -37,6 +37,9 @@ const paletteStyle = Object.entries(buildPalette(theme.primaryColor, theme.goldC
     <link rel="preload" href="/fonts/plus-jakarta-sans-latin-variable.woff2" as="font" type="font/woff2" crossorigin />
     <meta name="description" content={description} />
     <title>{title}</title>
+    <script is:inline>
+      document.documentElement.classList.replace('no-js', 'js');
+    </script>
   </head>
   <body>
     <Header />
@@ -50,5 +53,55 @@ const paletteStyle = Object.entries(buildPalette(theme.primaryColor, theme.goldC
     <BottomNav />
 
     <CartDrawer client:load />
+
+    <script is:inline>
+      // Header con estado "scrolled": sombra y fondo más firme al hacer scroll.
+      (function () {
+        var header = document.querySelector('.header');
+        if (!header) return;
+        var ticking = false;
+        function update() {
+          header.classList.toggle('is-scrolled', window.scrollY > 8);
+          ticking = false;
+        }
+        window.addEventListener('scroll', function () {
+          if (!ticking) {
+            ticking = true;
+            window.requestAnimationFrame(update);
+          }
+        }, { passive: true });
+        update();
+      })();
+
+      // Reveal on scroll (sutil, escalonado). Solo real si hay IntersectionObserver;
+      // el default es visible (html.no-js), así el contenido nunca se queda oculto.
+      (function () {
+        var els = document.querySelectorAll('[data-reveal]');
+        if (els.length === 0 || !('IntersectionObserver' in window)) {
+          els.forEach(function (el) { el.classList.add('is-revealed'); });
+          return;
+        }
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-revealed');
+              io.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.12, rootMargin: '0px 0px -5% 0px' });
+        els.forEach(function (el) { io.observe(el); });
+        // Red de seguridad: revela lo que ya esté dentro del viewport si el IO
+        // no disparó (pestañas ocultas, renderers), para no dejar nada en blanco.
+        setTimeout(function () {
+          els.forEach(function (el) {
+            if (!el.classList.contains('is-revealed') &&
+                el.getBoundingClientRect().top < window.innerHeight) {
+              el.classList.add('is-revealed');
+              io.unobserve(el);
+            }
+          });
+        }, 1800);
+      })();
+    </script>
   </body>
 </html>

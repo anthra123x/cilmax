@@ -103,3 +103,33 @@ backend Medusa/Neon:
   store_settings, schema_migrations) y recreado vacío. El schema `erp`
   (25 tablas, datos reales del ERP) queda intacto.
 - Sumario de filas antes del drop archivado en `/tmp/opencode/neon-cleanup-result.json`.
+
+### Fase 6 — Pulido de la interfaz (refinado y sutil) ✅
+
+Dirección de diseño del usuario: mantener el diseño actual (al cliente le gusta),
+que deje de verse estática, con movimiento **refinado y sutil** en todas las
+superficies. Contexto de marca en `PRODUCT.md` y sistema en `DESIGN.md`.
+
+- `Layout.astro`: `<html class="no-js">` → swap a `js`; scripts inline de
+  header con estado `is-scrolled` (scroll rAF) y **reveal on scroll**
+  (`[data-reveal]`, IntersectionObserver, stagger `--i` cap 450ms, red de
+  seguridad a 1.8s, default visible sin JS).
+- `global.css`: tokens `--ease-out-{quart,quint,expo}`; keyframes `rise-in`
+  (0.6s ease-out-quart); sistema `[data-reveal]` con `prefers-reduced-motion`
+  que fuerza visibilidad; `text-wrap: balance/pretty`; precios con
+  `tabular-nums`; hover/press de botones (lift −1px, press 0.98); opciones del
+  buy-box con hover/press.
+- Home: hero con **entrada escalonada** (80→160→240→340ms) y nudge de flecha
+  en el CTA; grid con reveal por tarjeta (`catalog__cell`).
+- Catálogo: page-hero y página-hero de las páginas simples (contacto, nosotros,
+  envíos, preguntas, tiendas) con `rise-in`; chips con hover/press; grid
+  escalonado.
+- PDP: breadcrumb con underline animado; "Productos relacionados" con reveal.
+- Componentes: `ProductCard` con zoom de imagen (1.06) y sombra dorada al
+  hover; header con transición de blur/sombra al scroll; `BottomNav` con
+  indicador activo con suavidad y press del icono; footer con underline animado.
+- Verificado: `astro check` 0 errores, 26 tests verdes, cobertura 92.85 %,
+  build OK; Playwright desktop+móvil: sin overflow horizontal, imágenes OK,
+  reveals completos (6/6, 10/10, 4/4), `html.js`, header scrolled, hover con
+  lift/zoom/sombra confirmados. Warnings SVG del drawer React (camelCase)
+  preexistentes.

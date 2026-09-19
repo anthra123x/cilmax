@@ -17,7 +17,7 @@ const activeCategory = categories.find((c) => c.slug === categorySlug) ?? null;
 ---
 
 <Layout title="Catálogo — CilMax">
-  <section class="page-hero">
+  <section class="page-hero rise-in">
     <div class="container">
       <h1 class="page-hero__title">Catálogo</h1>
       <p class="page-hero__subtitle">
@@ -60,7 +60,11 @@ const activeCategory = categories.find((c) => c.slug === categorySlug) ?? null;
       {
         products.length > 0 ? (
           <div class="catalog__grid">
-            {products.map((product) => <ProductCard product={product} />)}
+            {products.map((product, i) => (
+              <div class="catalog__cell" data-reveal style={`--i: ${i}`}>
+                <ProductCard product={product} />
+              </div>
+            ))}
           </div>
         ) : (
           <p class="catalog__empty">
@@ -119,12 +123,18 @@ const activeCategory = categories.find((c) => c.slug === categorySlug) ?? null;
     font-size: var(--font-size-sm);
     font-weight: 600;
     text-decoration: none;
-    transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+    transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease,
+      transform 0.12s ease;
   }
 
   .catalog__chip:hover {
     border-color: var(--color-primary);
     color: var(--color-primary);
+    transform: translateY(-1px);
+  }
+
+  .catalog__chip:active {
+    transform: scale(0.97);
   }
 
   .catalog__chip--active {

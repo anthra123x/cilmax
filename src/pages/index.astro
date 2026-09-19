@@ -12,14 +12,14 @@ const products = (featured.length > 0 ? featured : allProducts).slice(0, 6);
   <!-- Hero compacto -->
   <section class="hero">
     <div class="container hero__inner">
-      <p class="hero__eyebrow">Nuevos productos cada semana</p>
-      <h1 class="hero__title">Todo lo que necesitas, en un solo lugar</h1>
-      <p class="hero__subtitle">
+      <p class="hero__eyebrow rise-in" style="--rise-delay: 80ms">Nuevos productos cada semana</p>
+      <h1 class="hero__title rise-in" style="--rise-delay: 160ms">Todo lo que necesitas, en un solo lugar</h1>
+      <p class="hero__subtitle rise-in" style="--rise-delay: 240ms">
         Tecnología, hogar y accesorios con calidad. Cotiza y pide por WhatsApp,
         con atención cercana.
       </p>
-      <div class="hero__actions">
-        <a class="btn btn--primary" href="/catalogo">
+      <div class="hero__actions rise-in" style="--rise-delay: 340ms">
+        <a class="btn btn--primary arrow-nudge" href="/catalogo">
           Ver catálogo
           <svg
             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -50,8 +50,10 @@ const products = (featured.length > 0 ? featured : allProducts).slice(0, 6);
 
       <div class="catalog__grid">
         {
-          products.map((product) => (
-            <ProductCard product={product} />
+          products.map((product, i) => (
+            <div class="catalog__cell" data-reveal style={`--i: ${i}`}>
+              <ProductCard product={product} />
+            </div>
           ))
         }
       </div>
@@ -163,6 +165,15 @@ const products = (featured.length > 0 ? featured : allProducts).slice(0, 6);
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: var(--space-6);
+  }
+
+  /* Nudge sutil de la flecha en el CTA primario del hero */
+  .arrow-nudge svg {
+    transition: transform 0.25s var(--ease-out-quart);
+  }
+
+  .arrow-nudge:hover svg {
+    transform: translateX(4px);
   }
 
   @media (max-width: 900px) {
