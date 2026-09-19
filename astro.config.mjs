@@ -31,7 +31,9 @@ export default defineConfig({
         "form-action 'self'",
       ],
       scriptDirective: {
-        resources: ["'self'", "'wasm-unsafe-eval'"],
+        // 'unsafe-inline' admite los scripts is:inline del Layout (swap no-js,
+        // reveal on scroll, header scrolled) que no se calculan por hash.
+        resources: ["'self'", "'wasm-unsafe-eval'", "'unsafe-inline'"],
         strictDynamic: false,
       },
       styleDirective: {
