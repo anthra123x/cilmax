@@ -133,3 +133,7 @@ superficies. Contexto de marca en `PRODUCT.md` y sistema en `DESIGN.md`.
   reveals completos (6/6, 10/10, 4/4), `html.js`, header scrolled, hover con
   lift/zoom/sombra confirmados. Warnings SVG del drawer React (camelCase)
   preexistentes.
+- **Fix CSP producción**: la CSP de Astro (`security.csp`, hashes SHA-256) no
+  cubría los scripts `is:inline` del Layout (swap `no-js`, reveal, header) y los
+  bloqueaba en producción. Se añadió `'unsafe-inline'` a `scriptDirective`
+  (`astro.config.mjs`); verificado en vivo: `html.js`, reveals 6/6, sin errores.
